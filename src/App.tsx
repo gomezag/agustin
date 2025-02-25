@@ -194,7 +194,7 @@ function App() {
         <header className="container mx-auto px-4 py-20 text-white">
           <div className="max-w-4xl mx-auto">
             <h1 className="py-2 text-6xl font-bold mb-8 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-pink-400">
-              Agustín Gómez
+            Chase a project
             </h1>
             <div className="flex gap-4">
               <a href="https://github.com/gomezag" className="text-black hover:text-pink-400 transition-colors">
