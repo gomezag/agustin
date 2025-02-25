@@ -4,6 +4,25 @@ interface Link {
     text: string;
 }
 
+export interface Position {
+    x: number;
+    y: number;
+}
+
+export interface Velocity {
+    vx: number;
+    vy: number;
+}
+
+export interface Vector {
+    m: number;
+    a: number;
+}
+
+export type BubblePositions = {
+    [key: string]: { x: number; y: number };
+  };
+
 export interface BlogPostData{
     title: string;
     excerpt: string;

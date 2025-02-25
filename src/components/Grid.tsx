@@ -12,10 +12,10 @@ export function Grid({ mousePosition }: GridProps) {
   const prevTimeRef = useRef<number>(0);
   
   const spacing = 30; // Increased spacing for better visibility
-  const gravityRadius = 200;
-  const maxDisplacement = 30; // Reduced for more subtle effect
+  const gravityRadius = 300;
+  const maxDisplacement = 100; // Reduced for more subtle effect
   const damping = 0.95; // Increased for smoother movement
-  const stiffness = 0.50; // Increased for faster recovery
+  const stiffness = 0.30; // Increased for faster recovery
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -84,8 +84,8 @@ export function Grid({ mousePosition }: GridProps) {
         if (distance < gravityRadius) {
           const force = (gravityRadius - distance) / gravityRadius;
           const angle = Math.atan2(dy, dx);
-          const repulsionX = Math.cos(angle) * force * maxDisplacement;
-          const repulsionY = Math.sin(angle) * force * maxDisplacement;
+          const repulsionX = -Math.cos(angle) * force * maxDisplacement;
+          const repulsionY = -Math.sin(angle) * force * maxDisplacement;
           
           point.velocityX -= repulsionX * timeScale * 0.1;
           point.velocityY -= repulsionY * timeScale * 0.1;
@@ -119,8 +119,8 @@ export function Grid({ mousePosition }: GridProps) {
         const distance = Math.sqrt(dx * dx + dy * dy);
 
         const pointSize = distance < gravityRadius 
-          ? 2 + (2 * (gravityRadius - distance) / gravityRadius)
-          : 2;
+          ? 3 - (0.4 * (gravityRadius - distance) / gravityRadius)
+          : 3;
 
         ctx.moveTo(point.x + pointSize, point.y);
         ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2);
