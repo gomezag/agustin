@@ -11,10 +11,27 @@ const POSTS = blogPosts.map((post, index) => ({
   ...post
 }));
 
-const MIN_VELOCITY = 0.000001;
+const MIN_VELOCITY = 1;
+const MAX_VELOCITY = 100;
+const MIN_DISTANCE = 80; // Avoid singularities
 
-function getForce(G: number, dist: number) {
-  return G/(dist^2);
+const M_ball = 5;
+const M_cursor = 10;
+
+interface Position {
+  x: number
+  y: number
+}
+
+function getForce(G_eff: number, pos1: Position, pos2: Position, m1: number, m2: number) {
+  const dx = pos2.x - pos1.x;
+  const dy = pos2.y - pos1.y;
+  let dist2 = (dx * dx + dy * dy);
+  let dir = 1
+  if(dist2 < MIN_DISTANCE*MIN_DISTANCE){
+    dist2 = MIN_DISTANCE*MIN_DISTANCE;
+  }
+  return {m: dir*m1*m2*G_eff/(dist2), a: Math.atan2(dy, dx)};
 };
 
 function App() {
@@ -22,24 +39,30 @@ function App() {
   const [bubblePositions, setBubblePositions] = useState<{ [key: number]: { x: number; y: number } }>({});
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [draggedBubble, setDraggedBubble] = useState<{ id: number; offsetX: number; offsetY: number } | null>(null);
+  const [ G, setG ] = useState< number >(150);
   const velocitiesRef = useRef<{ [key: number]: { vx: number; vy: number } }>({});
   const animationFrameRef = useRef<number>();
   const prevTimeRef = useRef<number>(0);
 
   useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setMousePosition({ x: e.clientX, y: e.clientY });
+  const handleMove = (e: MouseEvent | TouchEvent) => {
+    const clientX = (e as MouseEvent).clientX ?? (e as TouchEvent).touches?.[0]?.clientX;
+    const clientY = (e as MouseEvent).clientY ?? (e as TouchEvent).touches?.[0]?.clientY;
+    if (clientX !== undefined && clientY !== undefined) {
+      setMousePosition({ x: clientX, y: clientY });
+    setMousePosition({ x: clientX, y: clientY });
 
       if (draggedBubble) {
         // Move the dragged bubble to follow the cursor
         setBubblePositions(prev => ({
           ...prev,
           [draggedBubble.id]: {
-            x: e.clientX - draggedBubble.offsetX,
-            y: e.clientY - draggedBubble.offsetY
+            x: clientX - draggedBubble.offsetX,
+            y: clientY - draggedBubble.offsetY
           }
         }));
       }
+    }
     };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
@@ -48,18 +71,22 @@ function App() {
     };
     window.addEventListener("keydown", handleKeyDown);    
     
-    const handleMouseUp = () => {
+    const handleEnd = () => {
       setDraggedBubble(null);
     };
 
-    window.addEventListener("mousemove", handleMouseMove);
-    window.addEventListener("mouseup", handleMouseUp);
+    window.addEventListener("mousemove", handleMove);
+    window.addEventListener("mouseup", handleEnd);
+    window.addEventListener("touchmove", handleMove, { passive: false });
+    window.addEventListener("touchend", handleEnd);
 
     return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      window.removeEventListener("mouseup", handleMouseUp);
+      window.removeEventListener("mousemove", handleMove);
+      window.removeEventListener("mouseup", handleEnd);
+      window.removeEventListener("touchmove", handleMove);
+      window.removeEventListener("touchend", handleEnd);
     };
-  }, [draggedBubble, mousePosition]);
+  }, [draggedBubble]);
 
   useEffect(() => {
     POSTS.forEach((post) => {
@@ -85,10 +112,6 @@ function App() {
       if (!prevTimeRef.current) prevTimeRef.current = timestamp;
       const deltaTime = timestamp - prevTimeRef.current;
       const timeScale = Math.min(deltaTime / 16.667, 2);
-      const G = 10;
-      const G_cursor = 30;
-      const softening = 10;
-      const cursorRadius = 400;
 
       prevTimeRef.current = timestamp;
 
@@ -120,15 +143,15 @@ function App() {
 
           const dx = pos2.x - pos1.x;
           const dy = pos2.y - pos1.y;
-          const distanceSq = dx * dx + dy * dy + softening; 
+          const distanceSq = dx * dx + dy * dy + MIN_DISTANCE; 
           const distance = Math.sqrt(distanceSq);
           const minDistance = (post1.radius + post2.radius) / 2;
-
+          const angle = Math.atan2(dy, dx)
           // Resolve overlap
           if (distance > 0 && distance < minDistance) {
             const overlap = minDistance - distance;
-            const pushX = (dx / distance) * (overlap / 2);
-            const pushY = (dy / distance) * (overlap / 2);
+            const pushX = (dx/distance) * (overlap / 2);
+            const pushY = (dy/distance) * (overlap / 2);
     
             pos1.x -= pushX;
             pos1.y -= pushY;
@@ -141,31 +164,23 @@ function App() {
           }
 
           // Gravitational pull between objects
-          let thisForce = getForce(G, distance);
-          totalForceX += (dx / distance) * thisForce;
-          totalForceY += (dy / distance) * thisForce;
-    
+          let thisForce = getForce(G, pos2, pos1, M_ball, M_ball);
+
+          totalForceX -= Math.cos(thisForce.a) * thisForce.m;
+          totalForceY -= Math.sin(thisForce.a) * thisForce.m;
         });
 
-        // Add mouse cursor gravitational pull
-        const mouseDx = mousePosition.x - pos1.x;
-        const mouseDy = mousePosition.y - pos1.y;
-        const mouseDistance = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy+softening);
+        // Gravitational pull between cursor
+        let thisForce = getForce(G, mousePosition, pos1, M_cursor, M_ball);
 
-        const mouseForce =  getForce(G_cursor, mouseDistance);
-        totalForceX += (mouseDx / mouseDistance) * mouseForce;
-        totalForceY += (mouseDy / mouseDistance) * mouseForce;
+        totalForceX -= Math.cos(thisForce.a) * thisForce.m;
+        totalForceY -= Math.sin(thisForce.a) * thisForce.m;
 
         // update velocities according to dv = F dt
         const velocity = velocitiesRef.current[post1.id];
         velocity.vx += totalForceX * timeScale;
         velocity.vy += totalForceY * timeScale;
-        if(Math.abs(velocity.vx) < MIN_VELOCITY) {
-          velocity.vx=0;
-        }
-        if(Math.abs(velocity.vy) < MIN_VELOCITY) {
-          velocity.vy=0;
-        }
+
         // tentative positions
         let newX = pos1.x + velocity.vx * timeScale;
         let newY = pos1.y + velocity.vy * timeScale;
@@ -190,6 +205,23 @@ function App() {
         } else if (newY > window.innerHeight - bubbleSize) {
           newY = window.innerHeight - bubbleSize;
           velocity.vy = -Math.abs(velocity.vy) * energyLoss;
+        }
+
+        // Stop things if they going too fast
+        if(Math.abs(velocity.vx) > MAX_VELOCITY) {
+          velocity.vx=MAX_VELOCITY;
+        }
+        if(Math.abs(velocity.vy) > MAX_VELOCITY) {
+          velocity.vy=MAX_VELOCITY;
+        }
+
+
+        // Stop things if they going too slow
+        if(Math.abs(velocity.vx) < MIN_VELOCITY) {
+          velocity.vx=0;
+        }
+        if(Math.abs(velocity.vy) < MIN_VELOCITY) {
+          velocity.vy=0;
         }
         // update position
         newPositions[post1.id] = { x: newX, y: newY };
@@ -223,8 +255,64 @@ function App() {
                 <Mail size={24} />
               </a>
             </div>
+          <label className="block text-black font-semibold">Gravity (G): {G}</label>
+          <input
+            type="range"
+            min="50"
+            max="700"
+            step="10"
+            value={G}
+            onChange={(e) => setG(Number(e.target.value))}
+            className="w-full mt-2 appearance-none focus:outline-none hover:text-pink-400 transition-colors"
+            style={{
+              WebkitAppearance: "none",
+              appearance: "none",
+              background: "transparent", // Hide the rail
+            }}
+          />
+          <style>{`
+              input[type="range"]::-webkit-slider-runnable-track {
+                background: transparent;
+              }
+
+              input[type="range"]::-moz-range-track {
+                background: transparent;
+              }
+
+              input[type="range"]::-webkit-slider-thumb {
+                -webkit-appearance: none;
+                appearance: none;
+                width: 20px;
+                height: 20px;
+                background:rgb(139, 137, 138); /* Pink */
+                border-radius: 50%;
+                cursor: pointer;
+                transition: background 0.3s ease, transform 0.2s;
+              }
+
+              input[type="range"]::-webkit-slider-thumb:active {
+                background:rgb(255, 20, 212); /* Darker pink when selected */
+                transform: scale(1.2);
+              }
+
+              input[type="range"]::-moz-range-thumb {
+                width: 20px;
+                height: 20px;
+                background: rgb(164, 155, 162);
+                border-radius: 50%;
+                cursor: pointer;
+                transition: background 0.3s ease, transform 0.2s;
+              }
+
+              input[type="range"]::-moz-range-thumb:active {
+                background: rgb(255, 20, 212);
+                transform: scale(1.2);
+              }
+            `}</style>
           </div>
+
         </header>
+      
 
       <Grid mousePosition={mousePosition} />
 
@@ -241,6 +329,15 @@ function App() {
                 id: post.id,
                 offsetX: e.clientX - bubblePositions[post.id].x,
                 offsetY: e.clientY - bubblePositions[post.id].y
+              });
+            }}
+            onTouchStart={(e) => {
+              e.preventDefault();
+              const touch = e.touches[0];
+              setDraggedBubble({
+                id: post.id,
+                offsetX: touch.clientX - bubblePositions[post.id].x,
+                offsetY: touch.clientY - bubblePositions[post.id].y,
               });
             }}
           />

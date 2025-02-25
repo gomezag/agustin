@@ -5,6 +5,7 @@ interface BlogBubbleProps {
   position: { x: number; y: number };
   onClick: () => void;
   onMouseDown: (e: any) => void;
+  onTouchStart: (e: any) => void;
 }
 
 export function BlogBubble({ post, position, onClick, onMouseDown }: BlogBubbleProps) {
