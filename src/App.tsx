@@ -4,7 +4,7 @@ import { BlogBubble } from './components/BlogBubble';
 import { PostDialog } from './components/PostDialog';
 import { BlogPost } from './types';
 import { blogPosts } from './data/blogPosts';
-import { Github, Linkedin, Mail } from 'lucide-react';
+import { Github, Linkedin, Mail, PauseCircle, PlayCircle } from 'lucide-react';
 
 const POSTS = blogPosts.map((post, index) => ({
   id: index,
@@ -15,8 +15,8 @@ const MIN_VELOCITY = 0;
 const MAX_VELOCITY = 100;
 const MIN_DISTANCE = 80; // Avoid singularities
 
-const M_ball = 5;
-const M_cursor = 10;
+const M_ball = 2;
+const M_cursor = 7;
 
 interface Position {
   x: number
@@ -40,6 +40,7 @@ function App() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
   const [draggedBubble, setDraggedBubble] = useState<{ id: number; offsetX: number; offsetY: number } | null>(null);
   const [ G, setG ] = useState< number >(150);
+  const [isAnimating, setIsAnimating] = useState(true);
   const velocitiesRef = useRef<{ [key: number]: { vx: number; vy: number } }>({});
   const animationFrameRef = useRef<number>();
   const prevTimeRef = useRef<number>(0);
@@ -89,6 +90,8 @@ function App() {
   }, [draggedBubble]);
 
   useEffect(() => {
+    if (!isAnimating) return;
+
     POSTS.forEach((post) => {
       if (!bubblePositions[post.id]) {
         setBubblePositions(prev => ({
@@ -146,18 +149,17 @@ function App() {
           const distanceSq = dx * dx + dy * dy + MIN_DISTANCE; 
           const distance = Math.sqrt(distanceSq);
           const minDistance = (post1.radius + post2.radius) / 2;
-          const angle = Math.atan2(dy, dx)
           // Resolve overlap
           if (distance > 0 && distance < minDistance) {
             const overlap = minDistance - distance;
             const pushX = (dx/distance) * (overlap / 2);
             const pushY = (dy/distance) * (overlap / 2);
-    
+            // Move balls out of an overlap
             pos1.x -= pushX;
             pos1.y -= pushY;
             pos2.x += pushX;
             pos2.y += pushY;
-    
+            // Swap velocities
             const velocity2 = velocitiesRef.current[post2.id];
             [velocity1.vx, velocity2.vx] = [velocity2.vx, velocity1.vx];
             [velocity1.vy, velocity2.vy] = [velocity2.vy, velocity1.vy];
@@ -199,8 +201,9 @@ function App() {
         }
         // Same for Y coord
         const headerHeight = document.querySelector('header')?.offsetHeight || 100;
-        if (newY < headerHeight + bubbleSize) {
-          newY = headerHeight + bubbleSize;
+        console.log(headerHeight)
+        if (newY < bubbleSize) {
+          newY = bubbleSize;
           velocity.vy = Math.abs(velocity.vy) * energyLoss;
         } else if (newY > window.innerHeight - bubbleSize) {
           newY = window.innerHeight - bubbleSize;
@@ -238,7 +241,7 @@ function App() {
         cancelAnimationFrame(animationFrameRef.current);
       }
     };
-  }, [bubblePositions, draggedBubble]);
+  }, [bubblePositions, draggedBubble, isAnimating]);
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -254,6 +257,9 @@ function App() {
               <a href="mailto:agustin.gomez.mansilla@gmail.com" className="text-black hover:text-pink-400 transition-colors">
                 <Mail size={24} />
               </a>
+              <button onClick={() => setIsAnimating(!isAnimating)} className="ml-auto text-black hover:text-pink-400 transition-colors">
+                {isAnimating ? <PauseCircle size={32} /> : <PlayCircle size={32} />}
+              </button>
             </div>
           <label className="block text-black font-semibold">Gravity (G): {G}</label>
           <input
