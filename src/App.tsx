@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Grid } from './components/Grid';
 import { BlogBubble } from './components/BlogBubble';
 import { PostDialog } from './components/PostDialog';
+import { GravitySlider } from './components/GravitySlider';
 import { BlogPost } from './types';
 import { blogPosts } from './data/blogPosts';
 import { Github, Linkedin, Mail, PauseCircle, PlayCircle } from 'lucide-react';
@@ -137,19 +138,19 @@ function App() {
         let totalForceX = 0;
         let totalForceY = 0;
 
-        //Calculate pull and bounce with other balls
         POSTS.forEach((post2) => {
           if (post1.id === post2.id) return;
           const pos2 = newPositions[post2.id];
           if (!pos2) return;
 
-
+          //Calculate pull with other balls
           const dx = pos2.x - pos1.x;
           const dy = pos2.y - pos1.y;
           const distanceSq = dx * dx + dy * dy + MIN_DISTANCE; 
           const distance = Math.sqrt(distanceSq);
           const minDistance = (post1.radius + post2.radius) / 2;
-          // Resolve overlap
+          
+          // Resolve overlap and bounce
           if (distance > 0 && distance < minDistance) {
             const overlap = minDistance - distance;
             const pushX = (dx/distance) * (overlap / 2);
@@ -166,12 +167,17 @@ function App() {
           }
 
           // Gravitational pull between objects
-          let thisForce = getForce(G, pos2, pos1, M_ball, M_ball);
+          const corrected_pos1 = {
+            x: pos1.x + post1.radius, y: pos1.y + post1.radius
+          }
+          const corrected_pos2 = {
+            x: pos2.x + post2.radius, y: pos2.y + post2.radius
+          }
+          let thisForce = getForce(G, corrected_pos2, corrected_pos1, M_ball, M_ball);
 
           totalForceX -= Math.cos(thisForce.a) * thisForce.m;
           totalForceY -= Math.sin(thisForce.a) * thisForce.m;
         });
-
         // Gravitational pull between cursor
         let thisForce = getForce(G, mousePosition, pos1, M_cursor, M_ball);
 
@@ -249,72 +255,19 @@ function App() {
           <div className="max-w-4xl mx-auto">
             <div className="flex gap-4">
               <a href="https://github.com/gomezag" className="text-black hover:text-pink-400 transition-colors">
-                <Github size={24} />
+                <Github size={35} />
               </a>
               <a href="https://www.linkedin.com/in/agustin-gomez-mansilla/" className="text-black hover:text-pink-400 transition-colors">
-                <Linkedin size={24} />
+                <Linkedin size={35} />
               </a>
               <a href="mailto:agustin.gomez.mansilla@gmail.com" className="text-black hover:text-pink-400 transition-colors">
-                <Mail size={24} />
+                <Mail size={35} />
               </a>
               <button onClick={() => setIsAnimating(!isAnimating)} className="ml-auto text-black hover:text-pink-400 transition-colors">
-                {isAnimating ? <PauseCircle size={32} /> : <PlayCircle size={32} />}
+                {isAnimating ? <PauseCircle size={45} /> : <PlayCircle size={45} />}
               </button>
             </div>
-          <label className="block text-black font-semibold">Gravity (G): {G}</label>
-          <input
-            type="range"
-            min="50"
-            max="700"
-            step="10"
-            value={G}
-            onChange={(e) => setG(Number(e.target.value))}
-            className="w-full mt-2 appearance-none focus:outline-none hover:text-pink-400 transition-colors"
-            style={{
-              WebkitAppearance: "none",
-              appearance: "none",
-              background: "transparent", // Hide the rail
-            }}
-          />
-          <style>{`
-              input[type="range"]::-webkit-slider-runnable-track {
-                background: transparent;
-              }
-
-              input[type="range"]::-moz-range-track {
-                background: transparent;
-              }
-
-              input[type="range"]::-webkit-slider-thumb {
-                -webkit-appearance: none;
-                appearance: none;
-                width: 20px;
-                height: 20px;
-                background:rgb(139, 137, 138); /* Pink */
-                border-radius: 50%;
-                cursor: pointer;
-                transition: background 0.3s ease, transform 0.2s;
-              }
-
-              input[type="range"]::-webkit-slider-thumb:active {
-                background:rgb(255, 20, 212); /* Darker pink when selected */
-                transform: scale(1.2);
-              }
-
-              input[type="range"]::-moz-range-thumb {
-                width: 20px;
-                height: 20px;
-                background: rgb(164, 155, 162);
-                border-radius: 50%;
-                cursor: pointer;
-                transition: background 0.3s ease, transform 0.2s;
-              }
-
-              input[type="range"]::-moz-range-thumb:active {
-                background: rgb(255, 20, 212);
-                transform: scale(1.2);
-              }
-            `}</style>
+            <GravitySlider G={G} setG={setG}></GravitySlider>
           </div>
 
         </header>
@@ -328,7 +281,11 @@ function App() {
             key={post.id}
             post={post}
             position={bubblePositions[post.id]}
-            onClick={() => setSelectedPost(post)}
+            onClick={(e) => {
+              e.preventDefault();
+              setIsAnimating(false);
+              setSelectedPost(post);
+            }}
             onMouseDown={(e) => {
               e.preventDefault();
               setDraggedBubble({
@@ -350,12 +307,12 @@ function App() {
         )
       ))}
 
-      {selectedPost && (
-        <PostDialog
-          post={selectedPost}
-          onClose={() => setSelectedPost(null)}
-        />
-      )}
+  {selectedPost && (
+    <PostDialog
+      post={selectedPost}
+      onClose={() => setSelectedPost(null)}
+    />
+  )}
     </div>
   );
 }

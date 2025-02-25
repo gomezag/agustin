@@ -1,0 +1,92 @@
+.gravity-slider {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+  
+  .slider-label {
+    color: black;
+    font-weight: 600;
+  }
+  
+  .slider-input {
+    width: 100%;
+    appearance: none;
+    background: transparent;
+    cursor: pointer;
+  }
+  
+  .slider-input:focus {
+    outline: none;
+  }
+  
+  .slider-input::-webkit-slider-runnable-track {
+    background: transparent;
+  }
+  
+  .slider-input::-moz-range-track {
+    background: transparent;
+  }
+  
+  .slider-input::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 20px;
+    height: 20px;
+    background: rgb(139, 137, 138);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+  }
+  
+  .slider-input::-webkit-slider-thumb:active {
+    background: rgb(255, 20, 212);
+    transform: scale(1.2);
+  }
+
+  .slider-input::-webkit-slider-thumb::after {
+    content: "aa";
+    position: absolute;
+    right: 5px;
+    color: black;
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .slider-input::-webkit-slider-thumb:active {
+    background: rgb(255, 20, 212);
+    transform: scale(1.2);
+  }
+
+  .slider-input::-moz-range-thumb {
+    width: 20px;
+    height: 20px;
+    background: rgb(192, 136, 179);
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s;
+  }
+  
+  .slider-input::-moz-range-thumb:active {
+    background: rgb(255, 20, 212);
+    transform: scale(1.2);
+  }
+  
+  .slider-input::-moz-range-thumb::before {
+    content: "<";
+    position: absolute;
+    left: 5px;
+    color: rgb(255, 20, 212);
+    font-size: 16px;
+    font-weight: bold;
+  }
+  
+  .slider-input::-moz-range-thumb::after {
+    content: "&gt";
+    position: absolute;
+    right: 5px;
+    color: rgb(255, 20, 212);
+    font-size: 16px;
+    font-weight: bold;
+  }

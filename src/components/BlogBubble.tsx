@@ -3,7 +3,7 @@ import { BlogPost } from '../types';
 interface BlogBubbleProps {
   post: BlogPost;
   position: { x: number; y: number };
-  onClick: () => void;
+  onClick: (e: any) => void;
   onMouseDown: (e: any) => void;
   onTouchStart: (e: any) => void;
 }
