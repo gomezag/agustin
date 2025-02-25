@@ -63,9 +63,6 @@ function App() {
 
   useEffect(() => {
     POSTS.forEach((post) => {
-      if (!velocitiesRef.current[post.id]) {
-        velocitiesRef.current[post.id] = { vx: (Math.random() - 0.5), vy: (Math.random() - 0.5) };
-      }
       if (!bubblePositions[post.id]) {
         setBubblePositions(prev => ({
           ...prev,
@@ -74,6 +71,13 @@ function App() {
             y: Math.random() * (window.innerHeight - 100) + 50
           }
         }));
+      }
+
+      if (!velocitiesRef.current[post.id] && bubblePositions[post.id]) {
+        velocitiesRef.current[post.id] = { 
+          vx: (((window.innerHeight/2)-bubblePositions[post.id].y)/100), 
+          vy: (((window.innerWidth/2)-bubblePositions[post.id].x)/100)
+        };
       }
     });
 
