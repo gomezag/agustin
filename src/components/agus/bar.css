@@ -1,0 +1,151 @@
+:root {
+    --yposition: 0px;
+    --iniwidth: 100%;
+    --selectedpos: 100%;
+    --barheight: 80px;
+    --iniheight: 0px;
+    --finheight: 100px;
+    --introduration: 1s;
+}
+
+.bar {
+    opacity: 0%;
+    margin: 15px 3% 15px 3%;
+    height: var(--barheight);
+    font-family: 'Alegreya Sans', sans-serif;
+    font-size: 40pt;
+    line-height: var(--barheight);
+    padding-left: 15px;
+    animation-name: unset;
+    display: flex;
+    border-radius: 5px;
+    z-index: 5;
+    flex-wrap: wrap;
+}
+
+
+.bar .label{
+    height: var(--barheight);
+    z-index: 8;
+    margin-top: 0;
+    width: 100%;
+    height: 100%;
+    flex-grow: 1;
+}
+
+.bar.intro{
+    animation-name: introText, l1Text;
+    animation-duration: var(--introduration);
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+}
+
+.bar.out {
+    animation-name: outBar;
+    position: relative;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    width: var(--iniwidth);
+}
+
+.bar.focus {
+    animation-name: focusBar;
+    position: relative;
+    opacity: 100%;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-direction: normal;
+}
+
+.bar.unfocus {
+    animation-name: unfocusBar;
+    position: relative;
+    opacity: 100%;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-direction: normal;
+}
+
+.bar.inagain {
+    animation-name: inagainBar, l1Text;
+    position: relative;
+    opacity: 100%;
+    animation-duration: 1s;
+    animation-iteration-count: 1;
+    animation-fill-mode: forwards;
+    animation-direction: normal;
+}
+
+
+@keyframes introText {
+    0% {
+        opacity: 0%;
+        padding-left: 100%;
+        margin-left: 100%;
+    }
+    100% {
+        opacity: 100%;
+        padding-left: 15px;
+        margin-left: 3%;
+    }
+}
+
+@keyframes outBar {
+    0% {
+        opacity: 100%;
+        left: 0px;
+    }
+    100% {
+        opacity: 0%;
+        left: -100%;
+    }
+}
+
+@keyframes inagainBar {
+    100% {
+        opacity: 100%;
+        left: 0px;
+    }
+    0% {
+        opacity: 0%;
+        left: -100%;
+    }
+}
+
+@keyframes focusBar {
+    0% {
+        opacity: 100%;
+        width: var(--iniwidth);
+        top: 0px;
+    }
+    100% {
+        opacity: 100%;
+        width: 94%;
+        top: var(--yposition);
+    }
+}
+
+@keyframes unfocusBar {
+    100% {
+        opacity: 100%;
+        width: var(--iniwidth);
+        top: 0px;
+    }
+    0% {
+        opacity: 100%;
+        width: 94%;
+        top: var(--yposition);
+    }
+}
+
+@keyframes l1Text{
+    0% {
+        width: 94%;
+    }
+    100% {
+        width: var(--iniwidth);
+    }
+}

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Agus</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Alegreya+Sans:ital,wght@1,700&display=swap" rel="stylesheet">
+    <script src="bars.js"></script>
+    <script src="subbars.js"></script>
+</head>
+<link rel="stylesheet" href="bar.css">
+<link rel="stylesheet" href="subbar.css">
+<body>
+    <main id="main">
+
+    </main>
+</body>
+
+<script>
+
+    const barsdata = [
+        new BarData("blog","25%", "#2D8ECD", "1s"),
+        new BarData("web","38%", "#439E36", "1.25s"),
+        new BarData("robots","53%", "#D34A2E", "1.5s"),
+        new BarData("data","68%", "#DF5CB1", "1.75s"),
+        new BarData("about","80%", "#FCCD05", "2s")
+    ];
+    const main = document.getElementById("main");
+    barsdata.map(function(bardata) {
+        let bar = new Bar(bardata);
+        main.appendChild(bar.div);
+    });
+    var bar = Bar.instances[0];
+    new SubBar("guachi", bar.div.style['background-color'], bar);
+    new SubBar("hass.io", bar.div.style['background-color'], bar);
+
+    Bar.instances.map(function(bar){
+        bar.enters();
+    })
+</script>
+
+<style>
+body {
+    background-color: #000000;
+    overflow-x: hidden;
+}
+
+main {
+    width: 1000px;
+    height: 600px;
+    display: flex;
+    flex-direction: column;
+}
+
+</style>
+</html>
