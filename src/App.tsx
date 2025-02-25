@@ -11,7 +11,7 @@ const POSTS = blogPosts.map((post, index) => ({
   ...post
 }));
 
-const MIN_VELOCITY = 1;
+const MIN_VELOCITY = 0;
 const MAX_VELOCITY = 100;
 const MIN_DISTANCE = 80; // Avoid singularities
 
