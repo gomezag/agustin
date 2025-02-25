@@ -1,4 +1,3 @@
-import React from 'react';
 import { BlogPost } from '../types';
 
 interface BlogBubbleProps {
@@ -26,11 +25,6 @@ export function BlogBubble({ post, position, onClick, onMouseDown }: BlogBubbleP
         alt={post.title}
         className="absolute inset-0 w-full h-full object-cover rounded-full"
       />
-      <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center rounded-full">
-        <h3 className="text-white font-semibold text-xs w-24 text-center line-clamp-2">
-          {post.title}
-        </h3>
-      </div>
     </button>
   );
 }

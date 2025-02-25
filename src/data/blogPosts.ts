@@ -4,7 +4,7 @@ import esprf from '../assets/espRF.jpeg'
 import aranduayala from '../assets/aranduayala.png'
 import ejumina from '../assets/ejumina.png'
 import { BlogPostData } from '../types'
-const radius=100;
+const radius=90;
 
 export const blogPosts:BlogPostData[] = [
   {
