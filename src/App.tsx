@@ -152,11 +152,9 @@ function App() {
         const mouseDy = mousePosition.y - pos1.y;
         const mouseDistance = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy+softening);
 
-        if (mouseDistance > 0 && mouseDistance > cursorRadius) {
-          const mouseForce =  getForce(G_cursor, mouseDistance);
-          totalForceX += (mouseDx / mouseDistance) * mouseForce;
-          totalForceY += (mouseDy / mouseDistance) * mouseForce;
-        }
+        const mouseForce =  getForce(G_cursor, mouseDistance);
+        totalForceX += (mouseDx / mouseDistance) * mouseForce;
+        totalForceY += (mouseDy / mouseDistance) * mouseForce;
 
         // update velocities according to dv = F dt
         const velocity = velocitiesRef.current[post1.id];
