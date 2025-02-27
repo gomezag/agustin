@@ -5,10 +5,40 @@ import aranduayala from '../assets/aranduayala.png'
 import ejumina from '../assets/ejumina.png'
 import laliga from '../assets/laliga.png'
 import arduplanter from '../assets/arduplanter.jpeg'
+import agustin from '../assets/agustin.png'
+import tesla from '../assets/tesla.png'
+import gatialimentador from '../assets/gatialimentador.png'
 import { BlogPostData } from '../types'
 const radius=90;
 
 export const blogPosts:BlogPostData[] = [
+  {
+    title: "Cat Feeder",
+    excerpt: "Who doesn't love not having your cats wake you up at 5 AM because they're hungry? Powered by an Arduino Uno and a salvaged stepper motor from the 3D printer, this beast would connect via bluetooth with an Android App to configure the feeding times and sync up the clock. It used an internal battery-powered RTC module to keep track of time in case of a power outage.",
+    date: '2018-03-03',
+    tags: ["Hardware", "Personal", "Cats"],
+    imageUrl: gatialimentador,
+    radius: radius,
+    links: []
+  },
+  {
+    title: "Tesla Coil",
+    excerpt: "Of course I've built a Tesla Coil. The smell of ozone in the room still tastes interesting to me somehow. It was quite hard to build the high voltage components with limited resources. I remember winding the secondary coil was a pain and the primary didn't come out quite as spiral as I would've liked, but hey, it sparked!",
+    date: '2018-03-03',
+    tags: ["Hardware", "Personal", "High Voltage"],
+    imageUrl: tesla,
+    radius: radius,
+    links: []
+  },
+  {
+    title: "Physics meets code",
+    excerpt: "That was what chatgpt said that I should orient my personal webpage, so here we are. This page is a place where I can dump the personal projects I've built over the years. Most of them, of course, unpolished. Some of them have been working for quite a bit of years (fingers crossed), others are waiting in my drawer for an up/recycling. The idea is that each little post will be a bubble floating around, interacting with different forces between each other and the cursor. Let's hope this one can grow in posts without becoming a memory killer.",
+    date: '2025-02-10',
+    tags: ["WebDev", "Personal"],
+    imageUrl: agustin,
+    radius: radius,
+    links: []
+  },
   {
     title: "A couple more pages",
     excerpt: "I'm starting to use AI coders. They are allowing me to create tons of web pages and implement ideas that would've taken a lot of effort to learn how to implement. Just now, i've managed to implement this page using React and Vercel without much consultation to their respectives documentation. \n I have also added this page to the web for a sculptor friend. \n Check it out, he has very cool sculptures, and don't be shy to ask about shipping if you'd like one in your living room!",
