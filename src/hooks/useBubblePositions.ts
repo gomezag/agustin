@@ -15,7 +15,7 @@ export function useBubblePositions(
     mousePosition: Position,
     ) {
         const [bubblePositions, setBubblePositions] = useState<BubblePositions>({});
-        const draggedBubbleRef = useRef<DraggedBubble | null>(null);
+        const [draggedBubble, setDraggedBubble] = useState<DraggedBubble | null>(null);
         const velocitiesRef = useRef<{ [key: number]: { vx: number; vy: number } }>({});
         const animationFrameRef = useRef<number>(0);
         const prevTimeRef = useRef<number>();
@@ -26,21 +26,6 @@ export function useBubblePositions(
         const energyLoss = 0.9;
         const G_nuclear = 0.0001;
 
-        function setDraggedBubble(bubble: DraggedBubble | null) {
-            draggedBubbleRef.current = bubble;
-            const draggedBubble = draggedBubbleRef.current;
-            if (draggedBubble) {
-                // Move the dragged bubble to follow the cursor
-                setBubblePositions(prev => ({
-                ...prev,
-                [draggedBubble.id]: {
-                    x: mousePosition.x,
-                    y: mousePosition.y
-                }
-                }));
-            }
-        };
-        
         useEffect(() => {
             const handleDrag = (e: MouseEvent | TouchEvent) => {
                 let clientX: number | null = null;
@@ -56,7 +41,6 @@ export function useBubblePositions(
                 }
     
                 if (clientX !== null && clientY !== null) {
-                    const draggedBubble = draggedBubbleRef.current;
                     if (draggedBubble) {
                         // Move the dragged bubble to follow the cursor
                         setBubblePositions(prev => ({
@@ -75,7 +59,6 @@ export function useBubblePositions(
             };
 
             const handleReleased = (e: KeyboardEvent) => {
-                const draggedBubble = draggedBubbleRef.current;
                 if(e.key==="Escape"){
                     if(draggedBubble) {
                     setDraggedBubble(null);
@@ -142,7 +125,6 @@ export function useBubblePositions(
 
                 if(!pos1 || !velocity1) return;
 
-                const draggedBubble = draggedBubbleRef.current;
                 // Handle dragging.
                 if (draggedBubble && post1.id === draggedBubble.id){
                     velocity1.vx = 1e3*((-pos1.x+mousePosition.x)/deltaTime);
