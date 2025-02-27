@@ -86,8 +86,8 @@ export function useBubblePositions(
             window.addEventListener("keydown", handleReleased);
             window.addEventListener("mousemove", handleDrag);
             window.addEventListener("mouseup", handleEnd);
-            window.addEventListener("touchmove", handleDrag);
-            window.addEventListener("touchend", handleEnd);
+            window.addEventListener("touchmove", handleDrag, { passive: false });
+            window.addEventListener("touchend", handleEnd, { passive: false });
     
             return () => {
                 window.removeEventListener("keydown", handleReleased);
