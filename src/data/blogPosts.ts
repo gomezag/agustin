@@ -8,10 +8,20 @@ import arduplanter from '../assets/arduplanter.jpeg'
 import agustin from '../assets/agustin.png'
 import tesla from '../assets/tesla.png'
 import gatialimentador from '../assets/gatialimentador.png'
+import laligabar from '../assets/laligabar.png'
 import { BlogPostData } from '../types'
 const radius=90;
 
 export const blogPosts:BlogPostData[] = [
+  {
+    title: "El bar de La Liga",
+    excerpt: "For about a year in Asunción I was part of the bar that was spawned by La Liga de Aventureros Paraguay which was intentended to be a place to play boardgames, eat and drink beer. It worked fine for a while, but unfortunately it was a side gig for all its members so it had to close down when no one had time to attend to the business. Fortunately, this happened around 6 months before the COVID-19 pandemic.",
+    date: '2018-03-03',
+    tags: ["Bar", "Personal", "Boardgames"],
+    imageUrl: laligabar,
+    radius: radius,
+    links: []
+  },
   {
     title: "Cat Feeder",
     excerpt: "Who doesn't love not having your cats wake you up at 5 AM because they're hungry? Powered by an Arduino Uno and a salvaged stepper motor from the 3D printer, this beast would connect via bluetooth with an Android App to configure the feeding times and sync up the clock. It used an internal battery-powered RTC module to keep track of time in case of a power outage.",
