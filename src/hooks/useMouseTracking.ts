@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { Position } from '../types';
 
 export function useMouseTracking() {
-  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const [mousePosition, setMousePosition] = useState<Position>({ x: 0, y: 0 });
 
   useEffect(() => {
     const handleMove = (e: MouseEvent | TouchEvent) => {

@@ -127,8 +127,8 @@ export function useBubblePositions(
 
                 // Handle dragging.
                 if (draggedBubble && post1.id === draggedBubble.id){
-                    velocity1.vx = 1e3*((-pos1.x+mousePosition.x)/deltaTime);
-                    velocity1.vy = 1e3*((-pos1.y+mousePosition.y)/deltaTime);
+                    velocity1.vx = (mousePosition.x-pos1.x)/timeScale;
+                    velocity1.vy = (mousePosition.y-pos1.y)/timeScale;
                     pos1.x = mousePosition.x;
                     pos1.y = mousePosition.y;
                     return; 

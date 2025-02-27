@@ -72,6 +72,7 @@ function App() {
               position={bubblePositions[post.id]}
               onClick={() => {
                   setSelectedPost(post);
+                  setDraggedBubble(null);
               }}
               onMouseDown={(e) => {
                 e.preventDefault();
