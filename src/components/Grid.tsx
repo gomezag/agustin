@@ -14,8 +14,9 @@ export function Grid({ mousePosition }: GridProps) {
   const spacing = 30; // Increased spacing for better visibility
   const gravityRadius = 300;
   const maxDisplacement = 100; // Reduced for more subtle effect
-  const damping = 0.95; // Increased for smoother movement
+  const damping = 0.7; // Increased for smoother movement
   const stiffness = 0.30; // Increased for faster recovery
+  const smoothing = 5;
   
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -79,7 +80,7 @@ export function Grid({ mousePosition }: GridProps) {
         const dx = mousePosition.x - point.x;
         const dy = mousePosition.y - point.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
-
+        if(distance < smoothing) return;
         // Calculate repulsion force (inverse of attraction)
         if (distance < gravityRadius) {
           const force = (gravityRadius - distance) / gravityRadius;

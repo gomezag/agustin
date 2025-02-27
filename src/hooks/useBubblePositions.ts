@@ -66,7 +66,6 @@ export function useBubblePositions(
                                 y: clientY
                             }
                         }));
-                            velocitiesRef.current[draggedBubble.id] = { vx: 0, vy: 0 };
                     }
                 }
             };  
@@ -146,8 +145,8 @@ export function useBubblePositions(
                 const draggedBubble = draggedBubbleRef.current;
                 // Handle dragging.
                 if (draggedBubble && post1.id === draggedBubble.id){
-                    velocity1.vx = (-pos1.x+mousePosition.x)/deltaTime;
-                    velocity1.vy = (-pos1.y+mousePosition.y)/deltaTime;
+                    velocity1.vx = 1e3*((-pos1.x+mousePosition.x)/deltaTime);
+                    velocity1.vy = 1e3*((-pos1.y+mousePosition.y)/deltaTime);
                     pos1.x = mousePosition.x;
                     pos1.y = mousePosition.y;
                     return; 
