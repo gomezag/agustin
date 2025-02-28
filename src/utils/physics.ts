@@ -1,7 +1,7 @@
 import { Position, Velocity, Vector } from '../types';
 const MIN_DISTANCE=100;
-const MAX_VELOCITY=10;
-const energyLoss=0.95
+const MAX_VELOCITY=15;
+const energyLoss=0.9
 
 export function getForce(G: number, v: Vector, m1: number, m2: number) {
     let dist2 = v.m;
@@ -19,8 +19,8 @@ export function nuclearForce(G_eff: number, v: Vector) {
     let dist = Math.sqrt(v.m);
 
     const A = 400; // Strength of repulsion
-    const B = 80;   // Strength of attraction
-    const lambda = 30; // Interaction range
+    const B = 400;   // Strength of attraction
+    const lambda = 50; // Interaction range
 
     // Prevent division by zero (minimum distance threshold)
     const minDistance = MIN_DISTANCE;

@@ -28,7 +28,8 @@ export function useBubblePositions(
         const prevTimeRef = useRef<number>();
         const M_ball = 1;
         const M_cursor = 5;
-        const G_nuclear = 0.000001;
+        const G_nuclear = 0.001;
+        const k_coulomb = 0.4;
 
         useEffect(() => {
             const handleDrag = (e: MouseEvent | TouchEvent) => {
@@ -73,8 +74,8 @@ export function useBubblePositions(
 
                 if (!velocitiesRef.current[post.id]) {
                     velocitiesRef.current[post.id] = {
-                        vx: 0,
-                        vy: 0,
+                        vx: Math.random()*0,
+                        vy: Math.random()*0,
                     };
                 }
             });
@@ -177,11 +178,11 @@ export function useBubblePositions(
                                 //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
                                 force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
                                 force.m = n*force.m;
-                                //force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
+                                //force = getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 10, 10)
                             } else {
-                                force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
-                                //force = nuclearForce(1, distances[post1.id][post2.id]!)
-                                //force = getForce(G/2, distances[post1.id][post2.id]!, M_ball, M_ball);
+                                force = getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 5, 5)
+                                //force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
+                                //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
                                 //force = getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius)
                                 //force = {m: 0, a: 0}
                             }
