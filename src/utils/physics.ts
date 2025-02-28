@@ -88,9 +88,9 @@ export function bounce(pos1: Position, pos2: Position, velocity1: Velocity, velo
 export function clipVelocity(vel: Velocity) {
     // Stop things if they going too fast
     if(Math.abs(vel.vx) > MAX_VELOCITY) {
-        vel.vx=MAX_VELOCITY;
+        vel.vx=Math.sign(vel.vx)*MAX_VELOCITY;
     }
     if(Math.abs(vel.vy) > MAX_VELOCITY) {
-        vel.vy=MAX_VELOCITY;
+        vel.vy=Math.sign(vel.vy)*MAX_VELOCITY;
     }
 }

@@ -3,7 +3,7 @@ import { getForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, checkWall
 import { BlogPost, Position, BubblePositions, Vector } from "../types";
 
 
-const MAX_FPS = 30; // Set the desired frame rate
+const MAX_FPS = 80; // Set the desired frame rate
 const FRAME_TIME = 1000 / MAX_FPS; // Convert FPS to frame duration (ms)
 
 interface DraggedBubble {
@@ -25,7 +25,7 @@ export function useBubblePositions(
         const animationFrameRef = useRef<number>(0);
         const dragFrameRef = useRef<number>(0);
         const dragTimeRef = useRef<number>(0);
-
+        const prevTimeRef = useRef<number>();
         const M_ball = 1;
         const M_cursor = 5;
         const G_nuclear = 0.000001;
@@ -105,122 +105,126 @@ export function useBubblePositions(
             const updateBubblePositions = (timestamp: number) => {
                 const newPositions = { ...bubblePositions };
 
-                if (!animationFrameRef.current) animationFrameRef.current = timestamp;
-                const deltaTime = timestamp - animationFrameRef.current;
+                if (!prevTimeRef.current) prevTimeRef.current = timestamp;
+                const deltaTime = timestamp - prevTimeRef.current;
                 const timeScale = Math.min(deltaTime / 16.667, 2);
+                if(deltaTime > FRAME_TIME){
+                    if(!isAnimating) return;
+                    let distances:(Vector | null)[][] = Array.from({ length: POSTS.length }, 
+                        () => Array(POSTS.length).fill(null)
+                    );
+                    POSTS.forEach((post1: BlogPost) => {
+                        let totalForceX = 0;
+                        let totalForceY = 0;
+                        const curPos1 = newPositions[post1.id];
+                        let pos1 = curPos1;
+                        const curVel1 = velocitiesRef.current[post1.id];
+                        let velocity1 = curVel1
+                        if(!pos1 || !velocity1) return;
+                        // Handle dragging.
+                        if (draggedBubble && post1.id === draggedBubble.id){
+                            return; 
+                        }
 
-                if(!isAnimating) return;
-                let distances:(Vector | null)[][] = Array.from({ length: POSTS.length }, 
-                    () => Array(POSTS.length).fill(null)
-                );
-                POSTS.forEach((post1: BlogPost) => {
-                    let totalForceX = 0;
-                    let totalForceY = 0;
-                    const curPos1 = newPositions[post1.id];
-                    let pos1 = curPos1;
-                    const curVel1 = velocitiesRef.current[post1.id];
-                    let velocity1 = curVel1
-                    if(!pos1 || !velocity1) return;
-                    // Handle dragging.
-                    if (draggedBubble && post1.id === draggedBubble.id){
-                        return; 
-                    }
-
-                    const corrPos1 = {
-                        x: pos1.x-post1.radius/2,
-                        y: pos1.y-post1.radius/2
+                        const corrPos1 = {
+                            x: pos1.x-post1.radius/2,
+                            y: pos1.y-post1.radius/2
+                                }
+                        POSTS.forEach((post2) => {
+                            //No self interaction
+                            if (post1.id === post2.id) return;
+                            const curPos2 = newPositions[post2.id];
+                            let pos2 = curPos2;
+                            const curVel2 = velocitiesRef.current[post2.id];
+                            let velocity2 = curVel2;
+                            if(!pos2 || !velocity2 ) return;
+                            
+                            const corrPos2 = {
+                                x: pos2.x-post2.radius/2,
+                                y: pos2.y-post2.radius/2
                             }
-                    POSTS.forEach((post2) => {
-                        //No self interaction
-                        if (post1.id === post2.id) return;
-                        const curPos2 = newPositions[post2.id];
-                        let pos2 = curPos2;
-                        let curVel2 = velocitiesRef.current[post2.id];
-                        let velocity2 = curVel2;
-                        if(!pos2 || !velocity2 ) return;
                         
-                        const corrPos2 = {
-                            x: pos2.x-post2.radius/2,
-                            y: pos2.y-post2.radius/2
-                        }
-                    
-                        const dx = corrPos2.x - corrPos1.x;
-                        const dy = corrPos2.y - corrPos1.y;
-                        const distanceSq = dx * dx + dy * dy;
-                        const angleRadians = Math.atan2(dy,dx);
-                        distances[post1.id][post2.id] = {
-                            m: distanceSq,
-                            a: angleRadians
-                        }
-                        const distance = Math.sqrt(distances[post1.id][post2.id]!.m);
-                        const angle = distances[post1.id][post2.id]!.a;
+                            const dx = corrPos2.x - corrPos1.x;
+                            const dy = corrPos2.y - corrPos1.y;
+                            const distanceSq = dx * dx + dy * dy;
+                            const angleRadians = Math.atan2(dy,dx);
+                            distances[post1.id][post2.id] = {
+                                m: distanceSq,
+                                a: angleRadians
+                            }
+                            const distance = Math.sqrt(distances[post1.id][post2.id]!.m);
+                            const angle = distances[post1.id][post2.id]!.a;
 
-                        //Resolve overlap and bounce. Don't interact if overlapping.
-                        const minDistance = (post1.radius + post2.radius) / 2;
-                        if (distance > 0 && distance < minDistance) {
-                            const overlap = minDistance - distance;
-                            bounce(pos1, pos2, velocity1, velocity2, overlap, angle);
-                            newPositions[post1.id] = pos1;
-                            newPositions[post2.id] = pos2;
-                            velocitiesRef.current[post1.id] = velocity1;
-                            velocitiesRef.current[post2.id] = velocity2;
-                            return
-                        }
+                            //Resolve overlap and bounce. Don't interact if overlapping.
+                            const minDistance = (post1.radius + post2.radius) / 2;
+                            if (distance > 0 && distance < minDistance) {
+                                const overlap = minDistance - distance;
+                                bounce(pos1, pos2, velocity1, velocity2, overlap, angle);
+                                newPositions[post1.id] = pos1;
+                                newPositions[post2.id] = pos2;
+                                velocitiesRef.current[post1.id] = velocity1;
+                                velocitiesRef.current[post2.id] = velocity2;
+                                return
+                            }
+                            
+                            let force: Vector;
+                            const tags2Set = new Set(post2.tags);
+                            if(post1.tags.some(tag => tags2Set.has(tag))){
+                                const n = post1.tags.filter(item => tags2Set.has(item)).length;
+                                //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
+                                force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
+                                force.m = n*force.m;
+                                //force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
+                            } else {
+                                force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
+                                //force = nuclearForce(1, distances[post1.id][post2.id]!)
+                                //force = getForce(G/2, distances[post1.id][post2.id]!, M_ball, M_ball);
+                                //force = getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius)
+                                //force = {m: 0, a: 0}
+                            }
+                            totalForceX -= Math.cos(force.a) * force.m;
+                            totalForceY -= Math.sin(force.m) * force.m;
+                        });
                         
-                        let force: Vector;
-                        const tags2Set = new Set(post2.tags);
-                        if(post1.tags.some(tag => tags2Set.has(tag))){
-                            const n = post1.tags.filter(item => tags2Set.has(item)).length;
-                            //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
-                            force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
-                            force.m = n*force.m;
-                            //force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
-                        } else {
-                            force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
-                            //force = nuclearForce(1, distances[post1.id][post2.id]!)
-                            //force = getForce(G/2, distances[post1.id][post2.id]!, M_ball, M_ball);
-                            //force = getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius)
-                            //force = {m: 0, a: 0}
+                        if(lastTouchPosition){
+                            // Mouse pointer interaction
+                            const dx = lastTouchPosition.x - corrPos1.x;
+                            const dy = lastTouchPosition.y - corrPos1.y;
+                            const distanceSq = dx * dx + dy * dy;
+                            const angleRadians = Math.atan2(dy,dx);
+
+                            const mouseDistance = {
+                                m: distanceSq,
+                                a: angleRadians
+                            }
+
+                            // Apply cursor force
+                            const cursorForce = getForce(G, mouseDistance, M_cursor, M_ball);
+                            //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
+
+                            totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;
+                            totalForceY -= Math.sin(cursorForce.a) * cursorForce.m;
                         }
-                        totalForceX -= Math.cos(force.a) * force.m;
-                        totalForceY -= Math.sin(force.m) * force.m;
+                        checkWalls(pos1, velocity1, post1.radius);
+                        clipVelocity(velocity1);
+                        newPositions[post1.id] = pos1;
+                        velocitiesRef.current[post1.id] = velocity1;
+                        // Update positions
+                        newPositions[post1.id] = {
+                            x: newPositions[post1.id].x + velocity1.vx* timeScale,
+                            y: newPositions[post1.id].y + velocity1.vy* timeScale,
+                        };
+                        // Apply acceleration
+                        velocity1.vx += totalForceX * timeScale;
+                        velocity1.vy += totalForceY * timeScale;
+
                     });
-                    
-                    if(lastTouchPosition){
-                        // Mouse pointer interaction
-                        const dx = lastTouchPosition.x - corrPos1.x;
-                        const dy = lastTouchPosition.y - corrPos1.y;
-                        const distanceSq = dx * dx + dy * dy;
-                        const angleRadians = Math.atan2(dy,dx);
-
-                        const mouseDistance = {
-                            m: distanceSq,
-                            a: angleRadians
-                        }
-
-                        // Apply cursor force
-                        const cursorForce = getForce(G, mouseDistance, M_cursor, M_ball);
-                        //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
-
-                        totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;
-                        totalForceY -= Math.sin(cursorForce.a) * cursorForce.m;
-                    }
-                    checkWalls(pos1, velocity1, post1.radius);
-                    clipVelocity(velocity1);
-                    // Update positions
-                    newPositions[post1.id] = {
-                        x: newPositions[post1.id].x + velocity1.vx* timeScale,
-                        y: newPositions[post1.id].y + velocity1.vy* timeScale,
-                    };
-                    // Apply acceleration
-                    velocity1.vx += totalForceX * timeScale;
-                    velocity1.vy += totalForceY * timeScale;
-
-                });
+                    prevTimeRef.current = timestamp;
+                }
                 setBubblePositions(newPositions);
                 animationFrameRef.current = requestAnimationFrame(updateBubblePositions);
             };
-          
+            
             animationFrameRef.current = requestAnimationFrame(updateBubblePositions);
 
             return () => {
@@ -242,13 +246,15 @@ export function useBubblePositions(
                     if (!dragTimeRef.current) dragTimeRef.current = timestamp;
                     const deltaTime = timestamp - dragTimeRef.current;
                     const timeScale = Math.min(deltaTime / 16.667, 2);
-    
+                    dragTimeRef.current = timestamp;
+
                     const pos1 = bubblePositions[draggedBubble.id];
                     const velocity1 = velocitiesRef.current[draggedBubble.id]|| { vx: 0, vy: 0 };
                     velocity1.vx = (lastTouchPosition.x-pos1.x)/timeScale;
                     velocity1.vy = (lastTouchPosition.y-pos1.y)/timeScale;
                     // Stop things if they going too fast
                     clipVelocity(velocity1);
+                    velocitiesRef.current[draggedBubble.id] = velocity1;
                 }
                 dragFrameRef.current = requestAnimationFrame(updateTouchPosition);
             };
