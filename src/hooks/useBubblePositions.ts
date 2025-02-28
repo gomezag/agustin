@@ -116,8 +116,10 @@ export function useBubblePositions(
                 POSTS.forEach((post1: BlogPost) => {
                     let totalForceX = 0;
                     let totalForceY = 0;
-                    let pos1 = newPositions[post1.id];
-                    let velocity1 = velocitiesRef.current[post1.id];
+                    const curPos1 = newPositions[post1.id];
+                    let pos1 = curPos1;
+                    const curVel1 = velocitiesRef.current[post1.id];
+                    let velocity1 = curVel1
                     if(!pos1 || !velocity1) return;
                     // Handle dragging.
                     if (draggedBubble && post1.id === draggedBubble.id){
@@ -131,9 +133,10 @@ export function useBubblePositions(
                     POSTS.forEach((post2) => {
                         //No self interaction
                         if (post1.id === post2.id) return;
-
-                        let pos2 = newPositions[post2.id];
-                        let velocity2 = velocitiesRef.current[post2.id];
+                        const curPos2 = newPositions[post2.id];
+                        let pos2 = curPos2;
+                        let curVel2 = velocitiesRef.current[post2.id];
+                        let velocity2 = curVel2;
                         if(!pos2 || !velocity2 ) return;
                         
                         const corrPos2 = {
@@ -157,6 +160,10 @@ export function useBubblePositions(
                         if (distance > 0 && distance < minDistance) {
                             const overlap = minDistance - distance;
                             bounce(pos1, pos2, velocity1, velocity2, overlap, angle);
+                            newPositions[post1.id] = pos1;
+                            newPositions[post2.id] = pos2;
+                            velocitiesRef.current[post1.id] = velocity1;
+                            velocitiesRef.current[post2.id] = velocity2;
                             return
                         }
                         
