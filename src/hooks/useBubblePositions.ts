@@ -1,6 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { getForce, nuclearForce, getCoulombForce, getVanDerWaalsForce } from "../utils/physics";
+import { getForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, checkWalls, bounce, clipVelocity } from "../utils/physics";
 import { BlogPost, Position, BubblePositions, Vector } from "../types";
+
+
+const MAX_FPS = 30; // Set the desired frame rate
+const FRAME_TIME = 1000 / MAX_FPS; // Convert FPS to frame duration (ms)
 
 interface DraggedBubble {
     id: number
@@ -11,26 +15,26 @@ interface DraggedBubble {
 export function useBubblePositions(
     POSTS: BlogPost[], 
     isAnimating: boolean,
-    G: number,
-    mousePosition: Position,
+    G: number
     ) {
         const [bubblePositions, setBubblePositions] = useState<BubblePositions>({});
         const [draggedBubble, setDraggedBubble] = useState<DraggedBubble | null>(null);
+        const [lastTouchPosition, setLastTouchPosition] = useState<Position | null>(null);
+        const isDraggingRef = useRef(false);
         const velocitiesRef = useRef<{ [key: number]: { vx: number; vy: number } }>({});
         const animationFrameRef = useRef<number>(0);
-        const prevTimeRef = useRef<number>();
+        const dragFrameRef = useRef<number>(0);
+        const dragTimeRef = useRef<number>(0);
 
-        const MAX_VELOCITY=10;
         const M_ball = 1;
         const M_cursor = 5;
-        const energyLoss = 0.95;
         const G_nuclear = 0.000001;
 
         useEffect(() => {
             const handleDrag = (e: MouseEvent | TouchEvent) => {
                 let clientX: number | null = null;
                 let clientY: number | null = null;
-    
+            
                 if ("clientX" in e) {
                     clientX = e.clientX;
                     clientY = e.clientY;
@@ -39,22 +43,13 @@ export function useBubblePositions(
                     clientY = e.touches[0].clientY;
                     e.preventDefault(); // Prevent scroll interference
                 }
-    
+            
                 if (clientX !== null && clientY !== null) {
-                    if (draggedBubble) {
-                        // Move the dragged bubble to follow the cursor
-                        setBubblePositions(prev => ({
-                            ...prev,
-                            [draggedBubble.id]: {
-                                x: clientX,
-                                y: clientY
-                            }
-                        }));
-                    }
+                    setLastTouchPosition({ x: clientX, y: clientY }); // Store touch position
                 }
-            };  
-
-            const handleEnd = (e: MouseEvent | TouchEvent ) => {
+            };
+            const handleEnd = () => {
+                isDraggingRef.current = false; // Stop touch loop
                 setDraggedBubble(null);
             };
 
@@ -62,6 +57,7 @@ export function useBubblePositions(
                 if(e.key==="Escape"){
                     if(draggedBubble) {
                     setDraggedBubble(null);
+                    isDraggingRef.current = false;
                     }
                 }
             };
@@ -72,6 +68,22 @@ export function useBubblePositions(
             window.addEventListener("touchmove", handleDrag, { passive: false });
             window.addEventListener("touchend", handleEnd, { passive: false });
     
+            // Initialize positions and velocities if not created.
+            POSTS.forEach((post) => {
+                if (!bubblePositions[post.id]) {
+                    bubblePositions[post.id] = {
+                        x: Math.random() * (window.innerWidth - 100),
+                        y: Math.random() * (window.innerHeight - 100),
+                    };
+                }
+
+                if (!velocitiesRef.current[post.id]) {
+                    velocitiesRef.current[post.id] = {
+                        vx: 0,
+                        vy: 0,
+                    };
+                }
+            });
             return () => {
                 window.removeEventListener("keydown", handleReleased);
                 window.removeEventListener("mousemove", handleDrag);
@@ -90,29 +102,11 @@ export function useBubblePositions(
         }, [POSTS]);
 
         useEffect(() => {
-
-            POSTS.forEach((post) => {
-                if (!bubblePositions[post.id]) {
-                    bubblePositions[post.id] = {
-                        x: Math.random() * (window.innerWidth - 100),
-                        y: Math.random() * (window.innerHeight - 100),
-                    };
-                }
-
-                if (!velocitiesRef.current[post.id]) {
-                    velocitiesRef.current[post.id] = {
-                        vx: 0,
-                        vy: 0,
-                    };
-                }
-            });
-
             const updateBubblePositions = (timestamp: number) => {
-
                 const newPositions = { ...bubblePositions };
 
-                if (!prevTimeRef.current) prevTimeRef.current = timestamp;
-                const deltaTime = timestamp - prevTimeRef.current;
+                if (!animationFrameRef.current) animationFrameRef.current = timestamp;
+                const deltaTime = timestamp - animationFrameRef.current;
                 const timeScale = Math.min(deltaTime / 16.667, 2);
 
                 if(!isAnimating) return;
@@ -122,25 +116,14 @@ export function useBubblePositions(
                 POSTS.forEach((post1: BlogPost) => {
                     let totalForceX = 0;
                     let totalForceY = 0;
-                    const pos1 = newPositions[post1.id];
-                    const velocity1 = velocitiesRef.current[post1.id];
+                    let pos1 = newPositions[post1.id];
+                    let velocity1 = velocitiesRef.current[post1.id];
                     if(!pos1 || !velocity1) return;
-
                     // Handle dragging.
                     if (draggedBubble && post1.id === draggedBubble.id){
-                        velocity1.vx = (mousePosition.x-pos1.x)/timeScale;
-                        velocity1.vy = (mousePosition.y-pos1.y)/timeScale;
-                        // Stop things if they going too fast
-                        if(Math.abs(velocity1.vx) > MAX_VELOCITY) {
-                            velocity1.vx=MAX_VELOCITY*Math.sign(velocity1.vx);
-                        }
-                        if(Math.abs(velocity1.vy) > MAX_VELOCITY) {
-                        velocity1.vy=MAX_VELOCITY*Math.sign(velocity1.vy);
-                        }
-                        pos1.x = mousePosition.x;
-                        pos1.y = mousePosition.y;
                         return; 
                     }
+
                     const corrPos1 = {
                         x: pos1.x-post1.radius/2,
                         y: pos1.y-post1.radius/2
@@ -149,8 +132,8 @@ export function useBubblePositions(
                         //No self interaction
                         if (post1.id === post2.id) return;
 
-                        const pos2 = newPositions[post2.id];
-                        const velocity2 = velocitiesRef.current[post2.id];
+                        let pos2 = newPositions[post2.id];
+                        let velocity2 = velocitiesRef.current[post2.id];
                         if(!pos2 || !velocity2 ) return;
                         
                         const corrPos2 = {
@@ -168,36 +151,22 @@ export function useBubblePositions(
                         }
                         const distance = Math.sqrt(distances[post1.id][post2.id]!.m);
                         const angle = distances[post1.id][post2.id]!.a;
-                        //Resolve overlap and bounce
+
+                        //Resolve overlap and bounce. Don't interact if overlapping.
                         const minDistance = (post1.radius + post2.radius) / 2;
                         if (distance > 0 && distance < minDistance) {
                             const overlap = minDistance - distance;
-                            const pushX = Math.cos(angle)*overlap*1.05;
-                            const pushY = Math.sin(angle)*overlap*1.05;
-                            //Move balls out of an overlap
-                            pos1.x -= pushX;
-                            pos1.y -= pushY;
-                            pos2.x += pushX;
-                            pos2.y += pushY;
-                            // Swap velocities
-                            [velocity1.vx, velocity2.vx] = [velocity2.vx*energyLoss, velocity1.vx*energyLoss];
-                            [velocity1.vy, velocity2.vy] = [velocity2.vy*energyLoss, velocity1.vy*energyLoss];
-
-                            // Stop things if they going too fast
-                            if(Math.abs(velocity1.vx) > MAX_VELOCITY) {
-                                velocity1.vx=MAX_VELOCITY*Math.sign(velocity1.vx);
-                            }
-                            if(Math.abs(velocity1.vy) > MAX_VELOCITY) {
-                            velocity1.vy=MAX_VELOCITY*Math.sign(velocity1.vy);
-                            }
+                            bounce(pos1, pos2, velocity1, velocity2, overlap, angle);
                             return
                         }
                         
                         let force: Vector;
-                        const tagsSet = new Set(post2.tags);
-                        if(post1.tags.some(tag => tagsSet.has(tag))){
+                        const tags2Set = new Set(post2.tags);
+                        if(post1.tags.some(tag => tags2Set.has(tag))){
+                            const n = post1.tags.filter(item => tags2Set.has(item)).length;
                             //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
                             force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
+                            force.m = n*force.m;
                             //force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
                         } else {
                             force = getCoulombForce(1, distances[post1.id][post2.id]!, 10, 10)
@@ -210,71 +179,76 @@ export function useBubblePositions(
                         totalForceY -= Math.sin(force.m) * force.m;
                     });
                     
+                    if(lastTouchPosition){
+                        // Mouse pointer interaction
+                        const dx = lastTouchPosition.x - corrPos1.x;
+                        const dy = lastTouchPosition.y - corrPos1.y;
+                        const distanceSq = dx * dx + dy * dy;
+                        const angleRadians = Math.atan2(dy,dx);
 
-                    const dx = mousePosition.x - corrPos1.x;
-                    const dy = mousePosition.y - corrPos1.y;
-                    const distanceSq = dx * dx + dy * dy;
-                    const angleRadians = Math.atan2(dy,dx);
+                        const mouseDistance = {
+                            m: distanceSq,
+                            a: angleRadians
+                        }
 
-                    const mouseDistance = {
-                        m: distanceSq,
-                        a: angleRadians
+                        // Apply cursor force
+                        const cursorForce = getForce(G, mouseDistance, M_cursor, M_ball);
+                        //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
+
+                        totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;
+                        totalForceY -= Math.sin(cursorForce.a) * cursorForce.m;
                     }
-                    // Apply cursor force
-                    const cursorForce = getForce(G, mouseDistance, M_cursor, M_ball);
-                    //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
-
-                    totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;
-                    totalForceY -= Math.sin(cursorForce.a) * cursorForce.m;
-
-                    velocity1.vx += totalForceX * timeScale;
-                    velocity1.vy += totalForceY * timeScale;
-
-                    // Check constraints
-                    const bubbleSize = post1.radius;
-                    if (pos1.x < bubbleSize) {
-                        pos1.x = bubbleSize;
-                        velocity1.vx = Math.abs(velocity1.vx) * energyLoss;
-                    } else if (pos1.x > window.innerWidth - bubbleSize) {
-                        pos1.x = window.innerWidth - bubbleSize;
-                        velocity1.vx = -Math.abs(velocity1.vx) * energyLoss;
-                    }
-                    // Same for Y coord
-                    //const headerHeight = document.querySelector('header')?.offsetHeight || 100;
-                    if (pos1.y < bubbleSize) {
-                        pos1.y = bubbleSize;
-                        velocity1.vy = Math.abs(velocity1.vy) * energyLoss;
-                    } else if (pos1.y > window.innerHeight - bubbleSize) {
-                        pos1.y = window.innerHeight - bubbleSize;
-                        velocity1.vy = -Math.abs(velocity1.vy) * energyLoss;
-                    }
-
-                    // Stop things if they going too fast
-                    if(Math.abs(velocity1.vx) > MAX_VELOCITY) {
-                        velocity1.vx=MAX_VELOCITY;
-                    }
-                    if(Math.abs(velocity1.vy) > MAX_VELOCITY) {
-                    velocity1.vy=MAX_VELOCITY;
-                    }
-
+                    checkWalls(pos1, velocity1, post1.radius);
+                    clipVelocity(velocity1);
+                    // Update positions
                     newPositions[post1.id] = {
                         x: newPositions[post1.id].x + velocity1.vx* timeScale,
                         y: newPositions[post1.id].y + velocity1.vy* timeScale,
                     };
+                    // Apply acceleration
+                    velocity1.vx += totalForceX * timeScale;
+                    velocity1.vy += totalForceY * timeScale;
+
                 });
-
-
                 setBubblePositions(newPositions);
                 animationFrameRef.current = requestAnimationFrame(updateBubblePositions);
             };
           
-        animationFrameRef.current = requestAnimationFrame(updateBubblePositions);
+            animationFrameRef.current = requestAnimationFrame(updateBubblePositions);
 
-        return () => {
-            cancelAnimationFrame(animationFrameRef.current);
-        };
-        }, [bubblePositions, isAnimating]);
+            return () => {
+                cancelAnimationFrame(animationFrameRef.current);
+            };
+        }, [bubblePositions, isAnimating, lastTouchPosition]);
 
+        useEffect(() => {
 
-  return { bubblePositions, setDraggedBubble };
+            const updateTouchPosition = (timestamp: number) => {
+                if (isDraggingRef.current && lastTouchPosition && draggedBubble) {
+                    setBubblePositions(prev => ({
+                        ...prev,
+                        [draggedBubble.id]: {
+                            x: lastTouchPosition.x,
+                            y: lastTouchPosition.y
+                        }
+                    }));
+                    if (!dragTimeRef.current) dragTimeRef.current = timestamp;
+                    const deltaTime = timestamp - dragTimeRef.current;
+                    const timeScale = Math.min(deltaTime / 16.667, 2);
+    
+                    const pos1 = bubblePositions[draggedBubble.id];
+                    const velocity1 = velocitiesRef.current[draggedBubble.id]|| { vx: 0, vy: 0 };
+                    velocity1.vx = (lastTouchPosition.x-pos1.x)/timeScale;
+                    velocity1.vy = (lastTouchPosition.y-pos1.y)/timeScale;
+                    // Stop things if they going too fast
+                    clipVelocity(velocity1);
+                }
+                dragFrameRef.current = requestAnimationFrame(updateTouchPosition);
+            };
+        
+            dragFrameRef.current = requestAnimationFrame(updateTouchPosition); // Start loop
+            return () => cancelAnimationFrame(dragFrameRef.current); // Stop the loop when the component updates/unmounts
+        }, [lastTouchPosition, draggedBubble]);
+
+  return { bubblePositions, setDraggedBubble, isDraggingRef };
 }

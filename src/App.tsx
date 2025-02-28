@@ -17,7 +17,7 @@ function App() {
   const [G, setG] = useState(150);
 
   const { mousePosition } = useMouseTracking();
-  const { bubblePositions, setDraggedBubble } = useBubblePositions(POSTS, isAnimating, G, mousePosition);
+  const { bubblePositions, setDraggedBubble, isDraggingRef } = useBubblePositions(POSTS, isAnimating, G);
 
   useEffect(() => {
     const handleReleased = (e: KeyboardEvent) => {
@@ -25,8 +25,10 @@ function App() {
         if (selectedPost) {
           setSelectedPost(null);
           setDraggedBubble(null);
+          isDraggingRef.current = false;
         } else {
           setDraggedBubble(null);
+          isDraggingRef.current = false;
         }
       } else if (e.key === " ") {
         e.preventDefault();
@@ -75,6 +77,7 @@ function App() {
               onClick={() => {
                   setSelectedPost(post);
                   setDraggedBubble(null);
+                  isDraggingRef.current = false;
               }}
               onMouseDown={(e) => {
                 e.preventDefault();
@@ -83,6 +86,7 @@ function App() {
                   offsetX: e.clientX - bubblePositions[post.id].x,
                   offsetY: e.clientY - bubblePositions[post.id].y,
                 });
+                isDraggingRef.current = true; // Mark dragging as active
               }}
               onTouchStart={(e) => {
                 e.preventDefault();
@@ -92,6 +96,7 @@ function App() {
                   offsetX: touch.clientX - bubblePositions[post.id].x,
                   offsetY: touch.clientY - bubblePositions[post.id].y,
                 });
+                isDraggingRef.current = true; // Mark dragging as active
               }}
             />
           )
