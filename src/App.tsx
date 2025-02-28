@@ -25,6 +25,8 @@ function App() {
         if (selectedPost) {
           setSelectedPost(null);
           setDraggedBubble(null);
+        } else {
+          setDraggedBubble(null);
         }
       } else if (e.key === " ") {
         e.preventDefault();

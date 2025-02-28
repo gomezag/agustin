@@ -14,9 +14,9 @@ const radius=90;
 
 export const blogPosts:BlogPostData[] = [
   {
-    title: "El bar de La Liga",
+    title: "La Liga bar",
     excerpt: "For about a year in Asunción I was part of the bar that was spawned by La Liga de Aventureros Paraguay which was intentended to be a place to play boardgames, eat and drink beer. It worked fine for a while, but unfortunately it was a side gig for all its members so it had to close down when no one had time to attend to the business. Fortunately, this happened around 6 months before the COVID-19 pandemic.",
-    date: '2018-03-03',
+    date: '2018-08-03',
     tags: ["Bar", "Personal", "Boardgames"],
     imageUrl: laligabar,
     radius: radius,
@@ -25,7 +25,7 @@ export const blogPosts:BlogPostData[] = [
   {
     title: "Cat Feeder",
     excerpt: "Who doesn't love not having your cats wake you up at 5 AM because they're hungry? Powered by an Arduino Uno and a salvaged stepper motor from the 3D printer, this beast would connect via bluetooth with an Android App to configure the feeding times and sync up the clock. It used an internal battery-powered RTC module to keep track of time in case of a power outage.",
-    date: '2018-03-03',
+    date: '2019-01-03',
     tags: ["Hardware", "Personal", "Cats"],
     imageUrl: gatialimentador,
     radius: radius,
@@ -114,7 +114,7 @@ export const blogPosts:BlogPostData[] = [
     links: []
   },
   {
-    title: "La Liga",
+    title: "La Liga Web",
     excerpt: "This is my published site with the biggest backend probably. Full featured with an e-shop, it also includes a boardgame event handler software to help you manage the tables and send the appropriate invitations to the guests. A QR code is generated which can be scanned at the event to recover the updated information about that player's table and ticket purchasing history.",
     date: "2020-03-05",
     imageUrl: laliga,
