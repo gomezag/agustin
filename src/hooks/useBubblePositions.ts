@@ -62,12 +62,6 @@ export function useBubblePositions(
                 }
             };
 
-            window.addEventListener("keydown", handleReleased);
-            window.addEventListener("mousemove", handleDrag);
-            window.addEventListener("mouseup", handleEnd);
-            window.addEventListener("touchmove", handleDrag, { passive: false });
-            window.addEventListener("touchend", handleEnd, { passive: false });
-    
             // Initialize positions and velocities if not created.
             POSTS.forEach((post) => {
                 if (!bubblePositions[post.id]) {
@@ -84,12 +78,21 @@ export function useBubblePositions(
                     };
                 }
             });
+
+            window.addEventListener("keydown", handleReleased);
+            window.addEventListener("mousemove", handleDrag);
+            window.addEventListener("mouseup", handleEnd);
+            window.addEventListener("touchstart", handleDrag, {passive: false});
+            window.addEventListener("touchmove", handleDrag, { passive: false });
+            window.addEventListener("touchend", handleEnd, { passive: false });
+    
             return () => {
                 window.removeEventListener("keydown", handleReleased);
                 window.removeEventListener("mousemove", handleDrag);
                 window.removeEventListener("mouseup", handleEnd);
                 window.removeEventListener("touchmove", handleDrag);
                 window.removeEventListener("touchend", handleEnd);
+                window.removeEventListener("touchstart", handleDrag);
             };
         }, []);
 

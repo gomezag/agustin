@@ -89,7 +89,6 @@ function App() {
                 isDraggingRef.current = true; // Mark dragging as active
               }}
               onTouchStart={(e) => {
-                e.preventDefault();
                 const touch = e.touches[0];
                 setDraggedBubble({
                   id: post.id,
