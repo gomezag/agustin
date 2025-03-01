@@ -1,9 +1,9 @@
 import { Position, Velocity, Vector } from '../types';
 const MIN_DISTANCE=100;
-const MAX_VELOCITY=15;
+const MAX_VELOCITY=12;
 const energyLoss=0.9
 
-export function getForce(G: number, v: Vector, m1: number, m2: number) {
+export function gravForce(G: number, v: Vector, m1: number, m2: number) {
     let dist2 = v.m;
     if (dist2 < MIN_DISTANCE * MIN_DISTANCE) {
       dist2 = MIN_DISTANCE * MIN_DISTANCE;
@@ -11,25 +11,14 @@ export function getForce(G: number, v: Vector, m1: number, m2: number) {
     return { m: -(m1 * m2 * G) / dist2, a: v.a };
   }
 
-export function nuclearForce(G_eff: number, v: Vector) {
+export function nuclearForce(c: number, R: number, v: Vector) {
     let dist2 = v.m;
     if (dist2 < MIN_DISTANCE * MIN_DISTANCE) {
         dist2 = MIN_DISTANCE * MIN_DISTANCE;
     }
-    let dist = Math.sqrt(v.m);
+    let r = Math.sqrt(v.m);
 
-    const A = 400; // Strength of repulsion
-    const B = 400;   // Strength of attraction
-    const lambda = 50; // Interaction range
-
-    // Prevent division by zero (minimum distance threshold)
-    const minDistance = MIN_DISTANCE;
-    const distance = Math.max(dist, minDistance);
-
-    // Compute force magnitude
-    const forceMag = -(G_eff^2) * (A*(Math.exp(-distance/lambda)/dist2) + B * Math.exp(-distance / lambda)/distance);
-
-    // Compute force components
+    const forceMag = (c*Math.exp(-r/R)*(r + R))/(R*r^2)
     return {
         m: forceMag,
         a: v.a

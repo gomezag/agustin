@@ -2,9 +2,9 @@ import { useState, useEffect } from "react";
 import { Grid } from "./components/Grid";
 import { BlogBubble } from "./components/BlogBubble";
 import { PostDialog } from "./components/PostDialog";
-import { GravitySlider } from "./components/GravitySlider";
 import { blogPosts } from "./data/blogPosts";
 import { Github, Linkedin, Mail, PauseCircle, PlayCircle } from "lucide-react";
+import { ConfigMenu } from "./components/ConfigMenu";
 import { useMouseTracking } from "./hooks/useMouseTracking";
 import { useBubblePositions } from "./hooks/useBubblePositions";
 import { BlogPost } from "./types";
@@ -15,9 +15,12 @@ function App() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>();
   const [isAnimating, setIsAnimating] = useState(true);
   const [G, setG] = useState(150);
-
+  const [RNuclear, setRNuclear] = useState(100);
+  const [cNuclear, setCNuclear] = useState(10);
+  const [kCoulomb, setKCoulomb] = useState(0.4);
+  
   const { mousePosition } = useMouseTracking();
-  const { bubblePositions, setDraggedBubble, isDraggingRef } = useBubblePositions(POSTS, isAnimating, G);
+  const { bubblePositions, setDraggedBubble, isDraggingRef } = useBubblePositions(POSTS, isAnimating, G, kCoulomb, cNuclear, RNuclear);
 
   useEffect(() => {
     const handleReleased = (e: KeyboardEvent) => {
@@ -57,15 +60,21 @@ function App() {
             <a href="mailto:agustin.gomez.mansilla@gmail.com" className="z-50 text-black hover:text-pink-400 transition-colors">
               <Mail size={35} />
             </a>
-            <button onClick={() => setIsAnimating(!isAnimating)} className="z-50 ml-auto text-black hover:text-pink-400 transition-colors">
-              {isAnimating ? <PauseCircle size={45} /> : <PlayCircle size={45} />}
-            </button>
+            <div className="ml-auto flex items-center gap-4" id="right-buttons">
+              <button onClick={() => setIsAnimating(!isAnimating)} className="z-50 text-black hover:text-pink-400 transition-colors">
+                {isAnimating ? <PauseCircle size={45} /> : <PlayCircle size={45} />}
+              </button>
+              <ConfigMenu G={G} setG={setG} 
+                          k={kCoulomb} setK={setKCoulomb}
+                          c={cNuclear} setC={setCNuclear}
+                          R={RNuclear} setR={setRNuclear}
+                          size={45} />
+              </div>
           </div>
-          <GravitySlider G={G} setG={setG} />
         </div>
       </header>
 
-      <Grid mousePosition={mousePosition} />
+      <Grid mousePosition={mousePosition} G={G} bubblePositions={bubblePositions} />
 
       {bubblePositions && POSTS.map(
         (post: BlogPost) =>

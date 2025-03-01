@@ -1,17 +1,20 @@
 import { useEffect, useRef } from 'react';
-import { Point } from '../types';
+import { Point, BubblePositions } from '../types';
+import { gravForce } from '../utils/physics';
 
 interface GridProps {
   mousePosition: { x: number; y: number };
+  G: number;
+  bubblePositions: BubblePositions;
 }
 
-export function Grid({ mousePosition }: GridProps) {
+export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointsRef = useRef<Point[]>([]);
   const frameRef = useRef<number>();
   const prevTimeRef = useRef<number>(0);
   
-  const spacing = 30; // Increased spacing for better visibility
+  const spacing = 40; // Increased spacing for better visibility
   const gravityRadius = 300;
   const maxDisplacement = 100; // Reduced for more subtle effect
   const damping = 0.7; // Increased for smoother movement
@@ -37,11 +40,12 @@ export function Grid({ mousePosition }: GridProps) {
 
     const initializePoints = () => {
       const points: Point[] = [];
-      const width = window.innerWidth;
-      const height = window.innerHeight;
+      const extra = 0.5;
+      const width = window.innerWidth*(1+extra);
+      const height = window.innerHeight*(1+extra);
       
-      for (let x = 0; x <= width; x += spacing) {
-        for (let y = 0; y <= height; y += spacing) {
+      for (let x = -Math.round(window.innerWidth*(extra/2)); x <= width; x += spacing) {
+        for (let y = -Math.round(window.innerWidth*(extra/2)); y <= height; y += spacing) {
           points.push({
             x,
             y,
@@ -79,19 +83,31 @@ export function Grid({ mousePosition }: GridProps) {
       pointsRef.current.forEach(point => {
         const dx = mousePosition.x - point.x;
         const dy = mousePosition.y - point.y;
-        const distance = Math.sqrt(dx * dx + dy * dy);
-        if(distance < smoothing) return;
-        // Calculate repulsion force (inverse of attraction)
-        if (distance < gravityRadius) {
-          const force = (gravityRadius - distance) / gravityRadius;
-          const angle = Math.atan2(dy, dx);
-          const repulsionX = -Math.cos(angle) * force * maxDisplacement;
-          const repulsionY = -Math.sin(angle) * force * maxDisplacement;
-          
-          point.velocityX -= repulsionX * timeScale * 0.1;
-          point.velocityY -= repulsionY * timeScale * 0.1;
+        const distance = {
+          m: Math.sqrt(dx * dx + dy * dy),
+          a: Math.atan2(dy, dx)
         }
+        let forceX = 0;
+        let forceY = 0;
+        // Calculate repulsion force (inverse of attraction)
+        const force = gravForce(G, distance, 5, 2);
+        forceX += Math.cos(force.a) * force.m * maxDisplacement;
+        forceY += Math.sin(force.a) * force.m * maxDisplacement;
+        Object.entries(bubblePositions).forEach(([key, bubble]) => {
+            const dx = bubble.x - point.x;
+            const dy = bubble.y - point.y;
+            const distance = {
+              m: Math.sqrt(dx * dx + dy * dy),
+              a: Math.atan2(dy, dx)
+            }
+            const force = gravForce(G, distance, 5, 3);
+            forceX += Math.cos(force.a) * force.m * maxDisplacement;
+            forceY += Math.sin(force.a) * force.m * maxDisplacement;
+        })  
+        
 
+        point.velocityX -= forceX * timeScale*0.1;
+        point.velocityY -= forceY * timeScale*0.1;
         // Spring force back to original position
         const springX = (point.originalX - point.x) * stiffness;
         const springY = (point.originalY - point.y) * stiffness;
@@ -149,7 +165,7 @@ export function Grid({ mousePosition }: GridProps) {
         cancelAnimationFrame(frameRef.current);
       }
     };
-  }, [mousePosition]);
+  }, [mousePosition, bubblePositions]);
 
   return (
     <canvas

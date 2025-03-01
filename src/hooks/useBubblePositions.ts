@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { getForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, checkWalls, bounce, clipVelocity } from "../utils/physics";
+import { gravForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, checkWalls, bounce, clipVelocity } from "../utils/physics";
 import { BlogPost, Position, BubblePositions, Vector } from "../types";
 
 
 const MAX_FPS = 80; // Set the desired frame rate
 const FRAME_TIME = 1000 / MAX_FPS; // Convert FPS to frame duration (ms)
+const M_ball = 1;
+const M_cursor = 5;
 
 interface DraggedBubble {
     id: number
@@ -15,7 +17,10 @@ interface DraggedBubble {
 export function useBubblePositions(
     POSTS: BlogPost[], 
     isAnimating: boolean,
-    G: number
+    G: number,
+    k_coulomb: number,
+    c_nuclear: number,
+    R_nuclear: number
     ) {
         const [bubblePositions, setBubblePositions] = useState<BubblePositions>({});
         const [draggedBubble, setDraggedBubble] = useState<DraggedBubble | null>(null);
@@ -26,10 +31,6 @@ export function useBubblePositions(
         const dragFrameRef = useRef<number>(0);
         const dragTimeRef = useRef<number>(0);
         const prevTimeRef = useRef<number>();
-        const M_ball = 1;
-        const M_cursor = 5;
-        const G_nuclear = 0.001;
-        const k_coulomb = 0.4;
 
         useEffect(() => {
             const handleDrag = (e: MouseEvent | TouchEvent) => {
@@ -83,9 +84,9 @@ export function useBubblePositions(
             window.addEventListener("keydown", handleReleased);
             window.addEventListener("mousemove", handleDrag);
             window.addEventListener("mouseup", handleEnd);
-            window.addEventListener("touchstart", handleDrag, {passive: false});
-            window.addEventListener("touchmove", handleDrag, { passive: false });
-            window.addEventListener("touchend", handleEnd, { passive: false });
+            window.addEventListener("touchstart", handleDrag);
+            window.addEventListener("touchmove", handleDrag);
+            window.addEventListener("touchend", handleEnd);
     
             return () => {
                 window.removeEventListener("keydown", handleReleased);
@@ -130,10 +131,6 @@ export function useBubblePositions(
                             return; 
                         }
 
-                        const corrPos1 = {
-                            x: pos1.x-post1.radius/2,
-                            y: pos1.y-post1.radius/2
-                                }
                         POSTS.forEach((post2) => {
                             //No self interaction
                             if (post1.id === post2.id) return;
@@ -143,13 +140,9 @@ export function useBubblePositions(
                             let velocity2 = curVel2;
                             if(!pos2 || !velocity2 ) return;
                             
-                            const corrPos2 = {
-                                x: pos2.x-post2.radius/2,
-                                y: pos2.y-post2.radius/2
-                            }
                         
-                            const dx = corrPos2.x - corrPos1.x;
-                            const dy = corrPos2.y - corrPos1.y;
+                            const dx = pos2.x - pos1.x;
+                            const dy = pos2.y - pos1.y;
                             const distanceSq = dx * dx + dy * dy;
                             const angleRadians = Math.atan2(dy,dx);
                             distances[post1.id][post2.id] = {
@@ -175,14 +168,14 @@ export function useBubblePositions(
                             const tags2Set = new Set(post2.tags);
                             if(post1.tags.some(tag => tags2Set.has(tag))){
                                 const n = post1.tags.filter(item => tags2Set.has(item)).length;
-                                //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
-                                force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
+                                //force = gravForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
+                                force = nuclearForce(c_nuclear, R_nuclear, distances[post1.id][post2.id]!)
                                 force.m = n*force.m;
-                                //force = getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 10, 10)
+                                force.m = force.m + getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 5, 5).m;
                             } else {
                                 force = getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 5, 5)
                                 //force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
-                                //force = getForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
+                                //force = gravForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
                                 //force = getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius)
                                 //force = {m: 0, a: 0}
                             }
@@ -192,8 +185,8 @@ export function useBubblePositions(
                         
                         if(lastTouchPosition){
                             // Mouse pointer interaction
-                            const dx = lastTouchPosition.x - corrPos1.x;
-                            const dy = lastTouchPosition.y - corrPos1.y;
+                            const dx = lastTouchPosition.x - pos1.x;
+                            const dy = lastTouchPosition.y - pos1.y;
                             const distanceSq = dx * dx + dy * dy;
                             const angleRadians = Math.atan2(dy,dx);
 
@@ -203,7 +196,7 @@ export function useBubblePositions(
                             }
 
                             // Apply cursor force
-                            const cursorForce = getForce(G, mouseDistance, M_cursor, M_ball);
+                            const cursorForce = gravForce(G, mouseDistance, M_cursor, M_ball);
                             //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
 
                             totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;

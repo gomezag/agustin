@@ -7,7 +7,6 @@
   
   .slider-label {
     color: black;
-    font-weight: 600;
   }
   
   .slider-input {
@@ -22,11 +21,11 @@
   }
   
   .slider-input::-webkit-slider-runnable-track {
-    background: transparent;
+    background: gray;
   }
   
   .slider-input::-moz-range-track {
-    background: transparent;
+    background: gray;
   }
   
   .slider-input::-webkit-slider-thumb {
@@ -51,7 +50,6 @@
     right: 5px;
     color: black;
     font-size: 16px;
-    font-weight: bold;
   }
   
   .slider-input::-webkit-slider-thumb:active {
@@ -79,7 +77,6 @@
     left: 5px;
     color: rgb(255, 20, 212);
     font-size: 16px;
-    font-weight: bold;
   }
   
   .slider-input::-moz-range-thumb::after {
@@ -88,5 +85,4 @@
     right: 5px;
     color: rgb(255, 20, 212);
     font-size: 16px;
-    font-weight: bold;
   }
