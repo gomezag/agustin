@@ -1,6 +1,5 @@
 import React from "react";
 import { Sliders } from "lucide-react";
-import './GravitySlider.css';
 
 interface GravitySliderProps {
   G: number;
@@ -23,7 +22,7 @@ export const GravitySlider: React.FC<GravitySliderProps> = ({ G, setG, title, mi
   };
 
   return (
-    <div className="gravity-slider flex flex-col items-center w-full">
+    <div className="flex flex-col items-center w-full">
       <label className="slider-label text-black font-semibold mb-2">{title} {G}</label>
       <div className="slider-container w-full flex items-center gap-2">
         <Sliders className="text-gray-500" size={20} />
@@ -36,9 +35,8 @@ export const GravitySlider: React.FC<GravitySliderProps> = ({ G, setG, title, mi
           onChange={handleChange}
           onTouchStart={handleTouch}
           onTouchMove={handleTouch}
-          className="w-full accent-pink-500 cursor-pointer touch-auto"
+          className="slider-input w-full accent-pink-500 cursor-pointer touch-auto"
         />
-        <Sliders className="text-gray-500" size={20} />
       </div>
     </div>
   );

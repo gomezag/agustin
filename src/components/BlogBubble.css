@@ -2,3 +2,19 @@
     touch-action: none;
     user-select: none;
   }
+
+  .formula-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    padding: 10px;
+    overflow-x: auto; 
+  }
+  
+  .formula-container {
+    display: inline-block;
+    text-align: center;
+    max-width: 90%; 
+    font-size: clamp(8px, 4vw, 28px); 
+  }

@@ -5,7 +5,7 @@ const energyLossWall=0.95;
 const energyLossBall=0.8;
 export const mBall = 1.5;
 export const cBall = 3;
-export const mCursor = 5;
+export const mCursor = 4;
 export const mGrid = 40;
 
 export function gravForce(G: number, v: Vector, m1: number, m2: number) {

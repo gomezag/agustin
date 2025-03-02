@@ -19,10 +19,10 @@ const POSTS = blogPosts.map((post, index) =>
 function App() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>();
   const [isAnimating, setIsAnimating] = useState(true);
-  const [G, setG] = useState(150);
-  const [RNuclear, setRNuclear] = useState(50);
-  const [cNuclear, setCNuclear] = useState(10);
-  const [kCoulomb, setKCoulomb] = useState(40);
+  const [G, setG] = useState(30);
+  const [RNuclear, setRNuclear] = useState(0);
+  const [cNuclear, setCNuclear] = useState(0);
+  const [kCoulomb, setKCoulomb] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(false);
   
   const { mousePosition } = useMouseTracking();

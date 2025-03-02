@@ -2,6 +2,9 @@ import { useState, useEffect } from "react";
 import { Settings } from "lucide-react";
 import { GravitySlider } from "./GravitySlider";
 import { motion, AnimatePresence } from "framer-motion";
+import { BlockMath } from "react-katex";
+import "katex/dist/katex.min.css";
+import Formula from "./Formula";
 
 interface ConfigProps {
   G: number; setG: (value: number) => void; 
@@ -56,7 +59,7 @@ export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size, isDarkMod
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -20, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeOut" }}
-              className="relative text-4xl bg-white backdrop-blur-md opacity-80 w-[90%] max-w-[500px] p-6 rounded-lg shadow-lg flex flex-col"
+              className="relative text-4xl bg-white backdrop-blur-md opacity-80 w-[90%] max-w-[1000px] max-h-[90%] p-6 rounded-lg shadow-lg flex flex-col"
             >
               <button
                 onClick={() => setIsOpen(false)}
@@ -67,9 +70,13 @@ export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size, isDarkMod
               </button>
               <h3 className="text-black mb-10 font-semibold">Settings</h3>
               <GravitySlider title="G:" G={G} setG={setG} min={0} max={300} step={5} />
+              <Formula latex={String.raw`\vec{F_G} = G \cdot \frac{m_1 m_2}{r_{i,j}^2}`} />
               <GravitySlider title="K:" G={k} setG={setK} min={0} max={400} step={5} />
+              <Formula latex={String.raw`\vec{F_E} = - k \cdot \frac{q_1 q_2}{r_{i,j}^2}`}/>
               <GravitySlider title="c:" G={c} setG={setC} min={0} max={400} step={5} />
               <GravitySlider title="R:" G={R} setG={setR} min={0} max={400} step={5} />
+              <Formula latex={String.raw`\vec{F_N} = c \cdot \frac{e^{-r_{i,j}/R} (r_{i,j} + R)}{R r^2}`} />
+              <Formula latex={String.raw`\vec{F} = \vec{F^{cur}_G} + \vec{F^{ij}_G} +  \vec{F_E} + \vec{F_N}`}/>
             </motion.div>
           </motion.div>
         )}
