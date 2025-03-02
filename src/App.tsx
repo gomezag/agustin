@@ -3,21 +3,27 @@ import { Grid } from "./components/Grid";
 import { BlogBubble } from "./components/BlogBubble";
 import { PostDialog } from "./components/PostDialog";
 import { blogPosts } from "./data/blogPosts";
-import { Github, Linkedin, Mail, PauseCircle, PlayCircle } from "lucide-react";
+import { Github, Linkedin, Mail, PauseCircle, PlayCircle, Moon, Sun } from "lucide-react";
 import { ConfigMenu } from "./components/ConfigMenu";
 import { useMouseTracking } from "./hooks/useMouseTracking";
 import { useBubblePositions } from "./hooks/useBubblePositions";
 import { BlogPost } from "./types";
+import { AnimatePresence } from "framer-motion";
+import './index.css';
 
-const POSTS = blogPosts.map((post, index) => ({ id: index, ...post }));
+const POSTS = blogPosts.map((post, index) => 
+  ({ id: index,
+    ...post })
+);
 
 function App() {
   const [selectedPost, setSelectedPost] = useState<BlogPost | null>();
   const [isAnimating, setIsAnimating] = useState(true);
   const [G, setG] = useState(150);
-  const [RNuclear, setRNuclear] = useState(100);
+  const [RNuclear, setRNuclear] = useState(50);
   const [cNuclear, setCNuclear] = useState(10);
-  const [kCoulomb, setKCoulomb] = useState(0.4);
+  const [kCoulomb, setKCoulomb] = useState(40);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const { mousePosition } = useMouseTracking();
   const { bubblePositions, setDraggedBubble, isDraggingRef } = useBubblePositions(POSTS, isAnimating, G, kCoulomb, cNuclear, RNuclear);
@@ -47,35 +53,40 @@ function App() {
   }, [selectedPost, setDraggedBubble]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
-      <header className="container mx-auto px-4 py-20 text-white">
+    <div className={`relative min-h-screen overflow-hidden bg-opacity-0`}>
+      <header className={`container mx-auto px-4 py-20 ${isDarkMode ? "text-white" : "text-black"}`}>
         <div className="max-w-4xl mx-auto">
           <div className="flex gap-4">
-            <a href="https://github.com/gomezag" className="z-50 text-black hover:text-pink-400 transition-colors">
+            <a href="https://github.com/gomezag" className={`z-50  hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}>
               <Github size={35} />
             </a>
-            <a href="https://www.linkedin.com/in/agustin-gomez-mansilla/" className="z-50 text-black hover:text-pink-400 transition-colors">
+            <a href="https://www.linkedin.com/in/agustin-gomez-mansilla/" className={`z-50 hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}>
               <Linkedin size={35} />
             </a>
-            <a href="mailto:agustin.gomez.mansilla@gmail.com" className="z-50 text-black hover:text-pink-400 transition-colors">
+            <a href="mailto:agustin.gomez.mansilla@gmail.com" className={`z-50 hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}>
               <Mail size={35} />
             </a>
             <div className="ml-auto flex items-center gap-4" id="right-buttons">
-              <button onClick={() => setIsAnimating(!isAnimating)} className="z-50 text-black hover:text-pink-400 transition-colors">
+              <button
+                onClick={() => setIsDarkMode(!isDarkMode)}
+                className={`z-50 hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}
+              >
+                {isDarkMode ? ( <Moon size={45} /> ) : ( <Sun size={45} /> )} 
+              </button>
+              <button onClick={() => setIsAnimating(!isAnimating)} className={`z-50 hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}>
                 {isAnimating ? <PauseCircle size={45} /> : <PlayCircle size={45} />}
               </button>
-              <ConfigMenu G={G} setG={setG} 
-                          k={kCoulomb} setK={setKCoulomb}
-                          c={cNuclear} setC={setCNuclear}
-                          R={RNuclear} setR={setRNuclear}
-                          size={45} />
+                <ConfigMenu G={G} setG={setG} 
+                            k={kCoulomb} setK={setKCoulomb}
+                            c={cNuclear} setC={setCNuclear}
+                            R={RNuclear} setR={setRNuclear}
+                            size={45} isDarkMode={isDarkMode}/>
               </div>
           </div>
         </div>
       </header>
-
-      <Grid mousePosition={mousePosition} G={G} bubblePositions={bubblePositions} />
-
+      <div className={`grid-background ${isDarkMode ? "dark-mode" : "light-mode"}`}> </div>
+        <Grid mousePosition={mousePosition} G={G} bubblePositions={bubblePositions} isDarkMode={isDarkMode} />
       {bubblePositions && POSTS.map(
         (post: BlogPost) =>
           bubblePositions[post.id] && (
@@ -109,8 +120,9 @@ function App() {
             />
           )
       )}
-
+      <AnimatePresence>
       {selectedPost && <PostDialog post={selectedPost} onClose={() => setSelectedPost(null)} />}
+        </AnimatePresence>
     </div>
   );
 }

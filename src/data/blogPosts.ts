@@ -21,6 +21,7 @@ export const blogPosts:BlogPostData[] = [
     tags: ["Bar", "Arcade", "Fantopia"],
     imageUrl: fantopia,
     radius: radius,
+    charge: 0,
     links: []
   },
   {
@@ -30,6 +31,7 @@ export const blogPosts:BlogPostData[] = [
     tags: ["Bar", "Boardgames"],
     imageUrl: laligabar,
     radius: radius,
+    charge: 0,
     links: []
   },
   {
@@ -39,6 +41,7 @@ export const blogPosts:BlogPostData[] = [
     tags: ["Electronics", "Cats"],
     imageUrl: gatialimentador,
     radius: radius,
+    charge: 1,
     links: []
   },
   {
@@ -48,6 +51,7 @@ export const blogPosts:BlogPostData[] = [
     tags: ["Electronics", "High Voltage", "Physics"],
     imageUrl: tesla,
     radius: radius,
+    charge: 1,
     links: []
   },
   {
@@ -57,6 +61,7 @@ export const blogPosts:BlogPostData[] = [
     tags: ["WebDev", "Physics"],
     imageUrl: agustin,
     radius: radius,
+    charge: -1,
     links: []
   },
   {
@@ -66,6 +71,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: aranduayala,
     tags: ["WebDev"],
     radius: radius,
+    charge: -1,
     links: [
       {
         url: 'https://www.aranduayala.com',
@@ -80,6 +86,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: ejumina,
     tags: ["WebDev"],
     radius: radius,
+    charge: -1,
     links: [
       {
         url: 'https://ejumina.vercel.app',
@@ -94,6 +101,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: esprf,
     tags: ["Electronics", "RF", "Automation"],
     radius: radius,
+    charge: 1,
     links: []
   },
   {
@@ -103,6 +111,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: ardugarden,
     tags: ["Electronics"],
     radius: radius,
+    charge: 1,
     links: []
   },
   {
@@ -112,6 +121,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: gdrivepos,
     tags: ["WebDev", "Fantopia"],
     radius: radius,
+    charge: -1,
     links: []
   },
   {
@@ -121,6 +131,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: arduplanter,
     tags: ["Hardware", "Automation"],
     radius: radius,
+    charge: 1,
     links: []
   },
   {
@@ -130,6 +141,7 @@ export const blogPosts:BlogPostData[] = [
     imageUrl: laliga,
     tags: ["WebDev", "Boardgames"],
     radius: radius,
+    charge: -1,
     links: [
       {
         url: 'https://laliga.com.py',

@@ -20,7 +20,7 @@ export interface Vector {
 }
 
 export type BubblePositions = {
-    [key: string]: { x: number; y: number };
+    [key: string]: { x: number; y: number, charge: number };
   };
 
 export interface BlogPostData{
@@ -29,8 +29,9 @@ export interface BlogPostData{
     date: string;
     imageUrl: string;
     tags: string[];
-    radius: number;
     links: Link[];
+    radius: number;
+    charge: number;
   }
 
   export interface BlogPost extends BlogPostData {

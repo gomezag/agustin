@@ -1,14 +1,16 @@
 import { useEffect, useRef } from 'react';
-import { Point, BubblePositions } from '../types';
-import { gravForce } from '../utils/physics';
+import { Point, BubblePositions, Vector } from '../types';
+import { gravForce, mCursor, mBall, mGrid, clipVelocity } from '../utils/physics';
+import '../index.css';
 
 interface GridProps {
   mousePosition: { x: number; y: number };
   G: number;
   bubblePositions: BubblePositions;
+  isDarkMode: boolean
 }
 
-export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
+export function Grid({ mousePosition, G, bubblePositions, isDarkMode }: GridProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pointsRef = useRef<Point[]>([]);
   const frameRef = useRef<number>();
@@ -17,15 +19,15 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
   const spacing = 40; // Increased spacing for better visibility
   const gravityRadius = 300;
   const maxDisplacement = 100; // Reduced for more subtle effect
-  const damping = 0.7; // Increased for smoother movement
-  const stiffness = 0.30; // Increased for faster recovery
-  const smoothing = 5;
+  const damping = 0.1; // Increased for smoother movement
+  const stiffness = 0.4; // Increased for faster recovery
+  const minDistance = 1;
   
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const resizeCanvas = () => {
@@ -74,7 +76,7 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d', { alpha: false });
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
     const updatePoints = (deltaTime: number) => {
@@ -87,12 +89,13 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
           m: Math.sqrt(dx * dx + dy * dy),
           a: Math.atan2(dy, dx)
         }
-        let forceX = 0;
-        let forceY = 0;
-        // Calculate repulsion force (inverse of attraction)
-        const force = gravForce(G, distance, 5, 2);
-        forceX += Math.cos(force.a) * force.m * maxDisplacement;
-        forceY += Math.sin(force.a) * force.m * maxDisplacement;
+        let totalForceX = 0;
+        let totalForceY = 0;
+        // Calculate Mouse Grav
+        let force: Vector = {m: 0, a: distance.a}
+        force.m = gravForce(G, distance, mCursor, mGrid).m*maxDisplacement;
+        totalForceX += Math.cos(force.a)*force.m
+        totalForceY += Math.sin(force.a)*force.m
         Object.entries(bubblePositions).forEach(([key, bubble]) => {
             const dx = bubble.x - point.x;
             const dy = bubble.y - point.y;
@@ -100,18 +103,17 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
               m: Math.sqrt(dx * dx + dy * dy),
               a: Math.atan2(dy, dx)
             }
-            const force = gravForce(G, distance, 5, 3);
-            forceX += Math.cos(force.a) * force.m * maxDisplacement;
-            forceY += Math.sin(force.a) * force.m * maxDisplacement;
+            const force = gravForce(G, distance, mBall, mGrid);
+            totalForceX += Math.cos(force.a) * force.m * maxDisplacement;
+            totalForceY += Math.sin(force.a) * force.m * maxDisplacement;
         })  
-        
 
-        point.velocityX -= forceX * timeScale*0.1;
-        point.velocityY -= forceY * timeScale*0.1;
+        point.velocityX += totalForceX * timeScale*0.1;
+        point.velocityY += totalForceY * timeScale*0.1;
         // Spring force back to original position
         const springX = (point.originalX - point.x) * stiffness;
         const springY = (point.originalY - point.y) * stiffness;
-
+        
         point.velocityX += springX * timeScale;
         point.velocityY += springY * timeScale;
 
@@ -126,9 +128,7 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
     };
 
     const render = () => {
-      ctx.fillStyle = '#f8fafc';
-      ctx.fillRect(0, 0, window.innerWidth, window.innerHeight);
-
+      ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
       ctx.beginPath();
       pointsRef.current.forEach(point => {
         const dx = mousePosition.x - point.x;
@@ -143,7 +143,7 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
         ctx.arc(point.x, point.y, pointSize, 0, Math.PI * 2);
       });
 
-      ctx.fillStyle = 'rgba(148, 163, 184, 0.4)';
+      ctx.fillStyle = isDarkMode ? 'rgba(255, 255, 255, 0.4)' : 'rgba(118, 104, 104, 0.4)' ;
       ctx.fill();
     };
 
@@ -171,7 +171,7 @@ export function Grid({ mousePosition, G, bubblePositions }: GridProps) {
     <canvas
       ref={canvasRef}
       className="fixed inset-0 -z-10"
-      style={{ touchAction: 'none' }}
+      style={{ touchAction: 'none', backgroundColor: 'transparent' }}
     />
   );
 }

@@ -1,4 +1,5 @@
 import { BlogPost } from '../types';
+import { motion, AnimatePresence } from "framer-motion";
 
 interface PostDialogProps {
   post: BlogPost;
@@ -7,8 +8,20 @@ interface PostDialogProps {
 
 export function PostDialog({ post, onClose }: PostDialogProps) {
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg">
+          <motion.div
+            initial={{ opacity: 0}}
+            animate={{ opacity: 1}}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50"
+          >
+            <motion.div
+              initial={{ y: -20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: -20, opacity: 0 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="bg-white rounded-lg max-w-2xl w-full p-6 relative shadow-lg"
+              >
         {/* Close Button */}
         <button
           onClick={onClose}
@@ -66,7 +79,7 @@ export function PostDialog({ post, onClose }: PostDialogProps) {
             </ul>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

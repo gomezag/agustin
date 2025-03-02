@@ -1,5 +1,6 @@
 import React from "react";
 import { Sliders } from "lucide-react";
+import './GravitySlider.css';
 
 interface GravitySliderProps {
   G: number;

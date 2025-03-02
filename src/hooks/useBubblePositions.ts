@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
-import { gravForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, checkWalls, bounce, clipVelocity } from "../utils/physics";
+import { gravForce, nuclearForce, getCoulombForce, getVanDerWaalsForce, 
+         checkWalls, bounce, clipVelocity, 
+         mBall, mCursor, cBall} from "../utils/physics";
 import { BlogPost, Position, BubblePositions, Vector } from "../types";
 
 
-const MAX_FPS = 80; // Set the desired frame rate
+const MAX_FPS = 60; // Set the desired frame rate
 const FRAME_TIME = 1000 / MAX_FPS; // Convert FPS to frame duration (ms)
-const M_ball = 1;
-const M_cursor = 5;
 
 interface DraggedBubble {
     id: number
@@ -18,9 +18,9 @@ export function useBubblePositions(
     POSTS: BlogPost[], 
     isAnimating: boolean,
     G: number,
-    k_coulomb: number,
-    c_nuclear: number,
-    R_nuclear: number
+    kCoulomb: number,
+    cNuclear: number,
+    rNuclear: number
     ) {
         const [bubblePositions, setBubblePositions] = useState<BubblePositions>({});
         const [draggedBubble, setDraggedBubble] = useState<DraggedBubble | null>(null);
@@ -68,15 +68,17 @@ export function useBubblePositions(
             POSTS.forEach((post) => {
                 if (!bubblePositions[post.id]) {
                     bubblePositions[post.id] = {
-                        x: Math.random() * (window.innerWidth - 100),
-                        y: Math.random() * (window.innerHeight - 100),
+                        x: Math.random() * (window.innerWidth-10),
+                        y: Math.random() * (window.innerHeight-10),
+                        charge: post.charge
                     };
                 }
 
                 if (!velocitiesRef.current[post.id]) {
+                    const initVelocity = 20;
                     velocitiesRef.current[post.id] = {
-                        vx: Math.random()*0,
-                        vy: Math.random()*0,
+                        vx: (Math.random()-0.5)*initVelocity,
+                        vy: (Math.random()-0.5)*initVelocity,
                     };
                 }
             });
@@ -164,23 +166,22 @@ export function useBubblePositions(
                                 return
                             }
                             
-                            let force: Vector;
+                            let force: Vector = {m: 0, a:distances[post1.id][post2.id]!.a};
                             const tags2Set = new Set(post2.tags);
                             if(post1.tags.some(tag => tags2Set.has(tag))){
-                                const n = post1.tags.filter(item => tags2Set.has(item)).length;
-                                //force = gravForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
-                                force = nuclearForce(c_nuclear, R_nuclear, distances[post1.id][post2.id]!)
-                                force.m = n*force.m;
-                                force.m = force.m + getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 5, 5).m;
+                                const n = post1.tags.filter(item => tags2Set.has(item)).length; 
+                                force.m += n*nuclearForce(cNuclear, rNuclear, distances[post1.id][post2.id]!).m;
+                                force.m += gravForce(G, distances[post1.id][post2.id]!, mBall, mBall).m;
+                                force.m += getCoulombForce(kCoulomb, distances[post1.id][post2.id]!, 10*post1.charge, -10*post2.charge).m;
                             } else {
-                                force = getCoulombForce(k_coulomb, distances[post1.id][post2.id]!, 5, 5)
+                                force.m += getCoulombForce(kCoulomb, distances[post1.id][post2.id]!, 10*post1.charge, -10*post2.charge).m;
                                 //force = nuclearForce(G_nuclear, distances[post1.id][post2.id]!)
-                                //force = gravForce(G, distances[post1.id][post2.id]!, M_ball, M_ball);
-                                //force = getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius)
+                                force.m += gravForce(G, distances[post1.id][post2.id]!, mBall, mBall).m;
+                                force.m += getVanDerWaalsForce(distances[post1.id][post2.id]!, post1.radius, post2.radius).m;
                                 //force = {m: 0, a: 0}
                             }
-                            totalForceX -= Math.cos(force.a) * force.m;
-                            totalForceY -= Math.sin(force.m) * force.m;
+                            totalForceX += Math.cos(force.a) * force.m;
+                            totalForceY += Math.sin(force.m) * force.m;
                         });
                         
                         if(lastTouchPosition){
@@ -196,11 +197,11 @@ export function useBubblePositions(
                             }
 
                             // Apply cursor force
-                            const cursorForce = gravForce(G, mouseDistance, M_cursor, M_ball);
+                            const cursorForce = gravForce(G, mouseDistance, mCursor, mCursor);
                             //const cursorForce = nuclearForce(0.0001, mousePosition, corrPos1);
 
-                            totalForceX -= Math.cos(cursorForce.a) * cursorForce.m;
-                            totalForceY -= Math.sin(cursorForce.a) * cursorForce.m;
+                            totalForceX += Math.cos(cursorForce.a) * cursorForce.m;
+                            totalForceY += Math.sin(cursorForce.a) * cursorForce.m;
                         }
                         checkWalls(pos1, velocity1, post1.radius);
                         clipVelocity(velocity1);
@@ -210,6 +211,7 @@ export function useBubblePositions(
                         newPositions[post1.id] = {
                             x: newPositions[post1.id].x + velocity1.vx* timeScale,
                             y: newPositions[post1.id].y + velocity1.vy* timeScale,
+                            charge: bubblePositions[post1.id].charge
                         };
                         // Apply acceleration
                         velocity1.vx += totalForceX * timeScale;
@@ -237,7 +239,8 @@ export function useBubblePositions(
                         ...prev,
                         [draggedBubble.id]: {
                             x: lastTouchPosition.x,
-                            y: lastTouchPosition.y
+                            y: lastTouchPosition.y,
+                            charge: prev[draggedBubble.id].charge
                         }
                     }));
                     if (!dragTimeRef.current) dragTimeRef.current = timestamp;

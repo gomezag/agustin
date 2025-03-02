@@ -8,10 +8,10 @@ interface ConfigProps {
   k: number; setK: (value: number) => void;
   c: number; setC: (value: number) => void;
   R: number; setR: (value: number) => void;
-  size: number
+  size: number; isDarkMode: boolean
 }
 
-export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size }: ConfigProps) {
+export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size, isDarkMode }: ConfigProps) {
   const [isOpen, setIsOpen] = useState(false);
 
   useEffect(() => {
@@ -36,7 +36,7 @@ export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size }: ConfigP
       <button
         onClick={() => setIsOpen(!isOpen)}
         onTouchStart={() => setIsOpen(!isOpen)}
-        className="z-50 pt-1 text-black hover:text-pink-400 transition-colors"
+        className={`z-50 hover:text-pink-400 transition-colors ${isDarkMode ? "text-white" : "text-black"}`}
       >
         <Settings size={size} />
       </button>
@@ -61,15 +61,15 @@ export function ConfigMenu({ G, setG, k, setK, c, setC, R, setR, size }: ConfigP
               <button
                 onClick={() => setIsOpen(false)}
                 onTouchStart={() => setIsOpen(false)}
-                className="absolute top-2 right-2 text-gray-500 hover:text-black transition-colors"
+                className="absolute top-2 right-2 text-gray-500 hover:text-white transition-colors"
               >
                 ✕
               </button>
               <h3 className="text-black mb-10 font-semibold">Settings</h3>
-              <GravitySlider title="G:" G={G} setG={setG} min={0} max={600} step={5} />
-              <GravitySlider title="K:" G={k} setG={setK} min={0} max={5} step={0.01} />
-              <GravitySlider title="c:" G={c} setG={setC} min={0} max={100} step={0.5} />
-              <GravitySlider title="R:" G={R} setG={setR} min={0} max={100} step={1} />
+              <GravitySlider title="G:" G={G} setG={setG} min={0} max={300} step={5} />
+              <GravitySlider title="K:" G={k} setG={setK} min={0} max={400} step={5} />
+              <GravitySlider title="c:" G={c} setG={setC} min={0} max={400} step={5} />
+              <GravitySlider title="R:" G={R} setG={setR} min={0} max={400} step={5} />
             </motion.div>
           </motion.div>
         )}
