@@ -1,15 +1,16 @@
-import ardugarden from '../assets/ardugarden1.jpeg'
-import gdrivepos from '../assets/google-drive-pos.png'
-import esprf from '../assets/espRF.jpeg'
-import aranduayala from '../assets/aranduayala.png'
-import ejumina from '../assets/ejumina.png'
-import laliga from '../assets/laliga.png'
-import arduplanter from '../assets/arduplanter.jpeg'
 import agustin from '../assets/agustin.png'
-import tesla from '../assets/tesla.png'
-import gatialimentador from '../assets/gatialimentador.png'
-import laligabar from '../assets/laligabar.png'
+import aranduayala from '../assets/aranduayala.png'
+import ardugarden from '../assets/ardugarden1.jpeg'
+import arduplanter from '../assets/arduplanter.jpeg'
+import ejumina from '../assets/ejumina.png'
+import esprf from '../assets/espRF.jpeg'
 import fantopia from '../assets/fantopia.png'
+import gatialimentador from '../assets/gatialimentador.png'
+import gdrivepos from '../assets/google-drive-pos.png'
+import laliga from '../assets/laliga.png'
+import laligabar from '../assets/laligabar.png'
+import sculpture from '../assets/sculpture.jpeg'
+import tesla from '../assets/tesla.png'
 import { BlogPostData } from '../types'
 const radius=90;
 
@@ -148,6 +149,17 @@ export const blogPosts:BlogPostData[] = [
         text: 'La Liga Web'
       }
 
+    ]
+  },
+  {
+    title: "Look mom, a sculpture",
+    excerpt: "I've tried sculpting rock with a friend who does this for a living. There is a hypnotic charm in substractive manufacturing, where the imagined picture keeps changing the material and viceversa, in a constant interaction until you stop modifying the piece.",
+    date: "2025-01-05",
+    imageUrl: sculpture,
+    tags: ["Hobby"],
+    radius: radius,
+    charge: -1,
+    links: [
     ]
   }
 ];

@@ -1,12 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Point, BubblePositions, Vector } from '../types';
-import { gravForce, mCursor, mBall, mGrid, clipVelocity } from '../utils/physics';
 import '../index.css';
+import { BubblePositions, Point, Vector } from '../types';
+import { gravForce, mBall, mCursor, mGrid } from '../utils/physics';
 
 interface GridProps {
   mousePosition: { x: number; y: number };
   G: number;
-  bubblePositions: BubblePositions;
+  bubblePositions: BubblePositions | {};
   isDarkMode: boolean
 }
 
@@ -15,14 +15,14 @@ export function Grid({ mousePosition, G, bubblePositions, isDarkMode }: GridProp
   const pointsRef = useRef<Point[]>([]);
   const frameRef = useRef<number>();
   const prevTimeRef = useRef<number>(0);
-  
+
   const spacing = 40; // Increased spacing for better visibility
   const gravityRadius = 300;
   const maxDisplacement = 100; // Reduced for more subtle effect
   const damping = 0.1; // Increased for smoother movement
   const stiffness = 0.4; // Increased for faster recovery
   const minDistance = 1;
-  
+
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -45,7 +45,7 @@ export function Grid({ mousePosition, G, bubblePositions, isDarkMode }: GridProp
       const extra = 0.5;
       const width = window.innerWidth*(1+extra);
       const height = window.innerHeight*(1+extra);
-      
+
       for (let x = -Math.round(window.innerWidth*(extra/2)); x <= width; x += spacing) {
         for (let y = -Math.round(window.innerWidth*(extra/2)); y <= height; y += spacing) {
           points.push({
@@ -106,14 +106,14 @@ export function Grid({ mousePosition, G, bubblePositions, isDarkMode }: GridProp
             const force = gravForce(G, distance, mBall, mGrid);
             totalForceX += Math.cos(force.a) * force.m * maxDisplacement;
             totalForceY += Math.sin(force.a) * force.m * maxDisplacement;
-        })  
+        })
 
         point.velocityX += totalForceX * timeScale*0.1;
         point.velocityY += totalForceY * timeScale*0.1;
         // Spring force back to original position
         const springX = (point.originalX - point.x) * stiffness;
         const springY = (point.originalY - point.y) * stiffness;
-        
+
         point.velocityX += springX * timeScale;
         point.velocityY += springY * timeScale;
 
@@ -135,7 +135,7 @@ export function Grid({ mousePosition, G, bubblePositions, isDarkMode }: GridProp
         const dy = mousePosition.y - point.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
 
-        const pointSize = distance < gravityRadius 
+        const pointSize = distance < gravityRadius
           ? 3 - (0.4 * (gravityRadius - distance) / gravityRadius)
           : 3;
 
