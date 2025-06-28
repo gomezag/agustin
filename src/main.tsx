@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { BrowserRouter, Route, Routes } from 'react-router-dom';
@@ -16,6 +17,7 @@ createRoot(document.getElementById('root')!).render(
           <Route path="/grid" element={<GridView />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Analytics />
       </BrowserRouter>
     </DarkModeProvider>
   </StrictMode>
